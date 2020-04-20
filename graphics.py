@@ -12,7 +12,8 @@ class gridSpace():
                  rect = [0, 0, 50, 50],
                  outline = 1,
                  objectsHere = [],
-                 highlighted = False):
+                 highlighted = False,
+                 text = None):
         self.color = color
         self.defaultColor = color
         self.highlightColor = highlightColor
@@ -21,11 +22,18 @@ class gridSpace():
         self.defaultOutline = outline
         self.objectsHere = objectsHere
         self.highlighted = highlighted
+        self.font = pygame.font.Font("Roboto-Regular.ttf", 16)
+        self.text = text
+        if text is not None:
+            self.text = bytes(str(text), "utf-8")
 
     def addObject(self, obj):
         self.objectsHere.append(obj)
 
     def draw(self, surface):
+        if self.text is not None:
+            text_surface = self.font.render(self.text, 0, (0, 0, 0))
+            surface.blit(text_surface, self.rect)
         pygame.draw.rect(surface, self.color, self.rect, self.outline)
 
     def highlight(self, color = None):
@@ -63,7 +71,7 @@ class gridSpace():
         self.highlighted = False
 
 class grid():
-    def __init__(self, width = 5, height = 5, totalWidth = 500, totalHeight = 500, color = (200, 200, 200, 1)):
+    def __init__(self, width = 5, height = 5, totalWidth = 500, totalHeight = 500, numbers = False, color = (200, 200, 200, 1)):
         self.dims = [width, height]
         self.totalDims = [totalWidth, totalHeight]
         self.spaceDims = [totalWidth // width, totalHeight // height]
@@ -76,7 +84,18 @@ class grid():
         for w in range(width):
             self.gridSpaces.append(list())
             for h in range(height):
-                self.gridSpaces[w].append(gridSpace(rect=[w * self.spaceDims[0], h * self.spaceDims[1], self.spaceDims[0], self.spaceDims[1]]))
+                text = None
+                if h == 0:
+                    text = w + 1
+                elif w == 0:
+                    text = h + 1
+
+                self.gridSpaces[w].append(
+                    gridSpace(rect=[w * self.spaceDims[0],
+                                    h * self.spaceDims[1],
+                                    self.spaceDims[0],
+                                    self.spaceDims[1]],
+                              text = text))
 
     def draw(self, surface):
         # Draw grid spaces

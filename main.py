@@ -33,7 +33,7 @@ done = False
 clock = pygame.time.Clock()
 pygame.mouse.set_visible(False)
 
-roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1])
+roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
 
 listener_thread = threading.Thread(target=listen)
 listener_thread.start()
