@@ -14,6 +14,7 @@ def process_command(text):
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         return False
     
+    pygame.event.post(events.done_listening_event)
     return True
 
 def listen():
@@ -36,5 +37,7 @@ def listen():
                     break
             except sr.UnknownValueError:
                 print("Google Cloud Speech could not understand audio")
-            except sr.RequestError as e:
-                print("Could not request results from Google Cloud Speech service; {0}".format(e))
+                pygame.event.post(events.done_listening_event)
+            except:
+                print("Could not request results from Google Cloud Speech service")
+                pygame.event.post(pygame.event.Event(events.error_type, error = "Speech recognition error."))

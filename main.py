@@ -6,7 +6,7 @@ from sys import argv
 import threading
 
 import events
-from graphics import grid, gridSpace, roomObject
+from graphics import grid, gridSpace, messageCenter, roomObject
 from speech import listen
 
 # Allow for windowed and full-screen modes
@@ -34,29 +34,36 @@ clock = pygame.time.Clock()
 pygame.mouse.set_visible(False)
 
 roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
+messageCenter = messageCenter(GRID_PX_DIMS[0] + 10, 10)
 
 listener_thread = threading.Thread(target=listen)
 listener_thread.start()
 
 while not done:
     clock.tick(10)
-     
+
     for event in pygame.event.get():
         # Basic UI events
         if event.type == pygame.QUIT:
             done = True
+            messageCenter.setText("Exiting program...")
         if event.type == pygame.VIDEORESIZE and window_const == pygame.RESIZABLE:
             screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
             SCREEN_DIMS = event.size
+            messageCenter.setText("Resizing window.")
 
         # What to do when waiting for a command to be speech-to-text converted
         if event.type == events.capture_space_type:
             roomGrid.lockSpace()
-        if event.type == events.what_space_type:
-            print(roomGrid.lockedSpace)
+            messageCenter.setText("Parsing voice command...")
+        if event.type == events.done_listening_type:
+            messageCenter.setText("Waiting for voice command.")
+        if event.type == events.error_type:
+            messageCenter.setText(event.error)
 
     screen.fill((255, 255, 255))
     
+    messageCenter.draw(screen)
     roomGrid.draw(screen)
 
     # Leap motion controller

@@ -2,8 +2,40 @@ import pygame
 import numpy as np
 
 class roomObject():
-    def __init__():
-        self.hi = 1
+    def __init__(self,
+                 color = (0, 0, 255, 1),
+                 rect = None, # or (x, y, w, h)
+                 circle = None, # or (x, y, r)
+                 outline = 1, # is width for circles
+                 text = None):
+        self.color = color
+        self.rect = rect
+        self.circle = circle
+        self.outline = outline
+        self.font = pygame.font.Font("Roboto-Regular.ttf", 16)
+        self.textColor = (255, 255, 255)
+        self.text = text
+        if text is not None:
+            self.text = bytes(str(text), "utf-8")
+        if rect is None and circle is None:
+            self.rect = [0, 0, 0, 0]
+    
+    def draw(self, surface):
+        if self.rect is None:
+            x = self.circle[0]
+            y = self.circle[1]
+            r = self.circle[2]
+
+            pygame.draw.circle(surface, self.color, (x, y), r, self.outline)
+        else:
+            x = self.rect[0]
+            y = self.rect[1]
+
+            pygame.draw.rect(surface, self.color, self.rect, self.outline)
+
+        if self.text is not None:
+            text_surface = self.font.render(self.text, 1, self.textColor)
+            surface.blit(text_surface, (x, y))
 
 class gridSpace():
     def __init__(self,
@@ -32,7 +64,7 @@ class gridSpace():
 
     def draw(self, surface):
         if self.text is not None:
-            text_surface = self.font.render(self.text, 0, (0, 0, 0))
+            text_surface = self.font.render(self.text, 1, (0, 0, 0))
             surface.blit(text_surface, self.rect)
         pygame.draw.rect(surface, self.color, self.rect, self.outline)
 
@@ -146,3 +178,23 @@ class grid():
     def unhighlight(self, spaceCoords):
         """Unhighlights a space"""
         self.gridSpaces[spaceCoords[0]][spaceCoords[1]].unhighlight()
+
+class messageCenter():
+    def __init__(self, x, y, text = "Waiting for voice command.", defaultColor = (0, 0, 0), fontSize = 20):
+        self.x = x
+        self.y = y
+        self.defaultColor = defaultColor
+        self.font = pygame.font.Font("Roboto-Regular.ttf", 20)
+        self.font.set_italic(True)
+        self.text = text
+
+    def draw(self, surface, color = None):
+        if self.text is not None:
+            if color is None:
+                color = self.defaultColor
+
+            text_surface = self.font.render(self.text, 1, color)
+            surface.blit(text_surface, (self.x, self.y))
+
+    def setText(self, text):
+        self.text = text
