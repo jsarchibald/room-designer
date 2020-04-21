@@ -61,22 +61,48 @@ while not done:
         if event.type == events.error_type:
             messageCenter.setText(event.error)
 
+        print(event)
+
         # Creating things
         if event.type == events.create_type:
             location = event.location
-            print(event)
+            if location[0] >= GRID_DIMS[0]:
+                location[0] = GRID_DIMS[0] - 1
+            if location[1] >= GRID_DIMS[1]:
+                location[1] = GRID_DIMS[1] - 1
+
+            footprint = [1, 1]
+
             if event.location[0] < 0:
                 location = roomGrid.lockedSpace
             if event.shape == "circle":
+                center = roomGrid.getCoords(location, True)
+                radius = [roomGrid.spaceDims[0] // 2]
                 obj = roomObject(event.color,
-                                 circle=roomGrid.getCoords(location, True) + [roomGrid.spaceDims[0] // 2],
-                                 outline=event.outline)
+                                 circle=center + radius,
+                                 outline=event.outline,
+                                 text="C",
+                                 objType=event.obj_type,
+                                 footprint=list(location) + [1, 1]) # This needs to be updated if we ever do circles more than one gridspace
                 roomGrid.addObject(obj)
             elif event.shape == "rectangle":
                 rect = roomGrid.getCoords(location)
                 rect = rect[:2] + [event.size[0] * roomGrid.spaceDims[0], event.size[1] * roomGrid.spaceDims[1]]
-                obj = roomObject(event.color, rect=rect, outline=event.outline)
+                obj = roomObject(event.color,
+                                 rect=rect,
+                                 outline=event.outline,
+                                 text="T",
+                                 objType=event.obj_type,
+                                 footprint=location + [event.size[0], event.size[1]])
                 roomGrid.addObject(obj)
+
+        # Deleting things
+        elif event.type == events.delete_type:
+            location = event.location
+            if location[0] >= GRID_DIMS[0] or location[1] >= GRID_DIMS[1]:
+                continue
+            
+            roomGrid.removeObject(event.obj_type, location)
 
     screen.fill((255, 255, 255))
     

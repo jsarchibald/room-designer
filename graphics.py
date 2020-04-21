@@ -7,7 +7,9 @@ class roomObject():
                  rect = None, # or (x, y, w, h)
                  circle = None, # or (x, y, r)
                  outline = 0, # is width for circles
-                 text = None):
+                 text = None,
+                 objType = "room",
+                 footprint = [1, 1]):
         self.color = color
         self.rect = rect
         self.circle = circle
@@ -15,6 +17,9 @@ class roomObject():
         self.font = pygame.font.Font("Roboto-Regular.ttf", 16)
         self.textColor = (255, 255, 255)
         self.text = text
+        self.objType = objType
+        self.footprint = footprint
+
         if text is not None:
             self.text = bytes(str(text), "utf-8")
         if rect is None and circle is None:
@@ -140,6 +145,9 @@ class grid():
 
     def addObject(self, obj):
         self.objects.append(obj)
+        for w in range(obj.footprint[2]):
+            for h in range(obj.footprint[3]):
+                self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].addObject(obj)
 
     def draw(self, surface):
         # Draw grid spaces
@@ -185,11 +193,22 @@ class grid():
                     self.gridSpaces[w][h].unhighlight()
 
         self.gridSpaces[spaceCoords[0]][spaceCoords[1]].highlight(color)
-        self.hoverSpace = spaceCoords
+        self.hoverSpace = list(spaceCoords)
 
     def lockSpace(self):
         """Locks a space while waiting for text to process"""
         self.lockedSpace = self.hoverSpace
+
+    def removeObject(self, objType, location):
+        """Removes the first instance of object with objType that exists at location"""
+        for obj in self.gridSpaces[location[0]][location[1]].getObjects():
+            if obj.objType == objType or objType == "any":
+                for w in range(obj.footprint[2]):
+                    for h in range(obj.footprint[3]):
+                        self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
+                self.objects.remove(obj)
+
+                return True
 
     def toggleHighlight(self, spaceCoords, color = (210, 210, 210, 1)):
         """Toggles a space to highlight (or not)"""
