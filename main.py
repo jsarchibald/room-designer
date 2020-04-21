@@ -61,6 +61,15 @@ while not done:
         if event.type == events.error_type:
             messageCenter.setText(event.error)
 
+        # Creating things
+        if event.type == events.create_type:
+            location = event.location
+            if event.location == [-1, -1]:
+                location = roomGrid.lockedSpace
+            if event.shape == "circle":
+                obj = roomObject(event.color, circle=roomGrid.getCoords(location, True) + [roomGrid.spaceDims[0] // 2])
+                roomGrid.add_object(obj)
+
     screen.fill((255, 255, 255))
     
     messageCenter.draw(screen)

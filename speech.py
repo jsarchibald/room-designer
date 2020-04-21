@@ -13,7 +13,22 @@ def process_command(text):
     if "quit" in text or "bye" in text:
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         return False
-    
+
+    if "add" in text or "create" in text:
+        location = [-1, -1]
+        if "at" in text:
+            # TODO
+            location = [-1, -1]
+        if "cocktail" in text or "round" in text:
+            shape = "circle"
+            color = (0, 255, 0)
+        else:
+            # TODO
+            shape = "circle"
+            color = (0, 0, 255)
+        
+        pygame.event.post(pygame.event.Event(events.create_type, shape=shape, location=location, color=color))
+            
     pygame.event.post(events.done_listening_event)
     return True
 

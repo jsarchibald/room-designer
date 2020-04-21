@@ -8,3 +8,5 @@ done_listening_event = pygame.event.Event(done_listening_type)
 
 error_type = pygame.USEREVENT + 3
 error_event = pygame.event.Event(error_type)
+
+create_type = pygame.USEREVENT + 4

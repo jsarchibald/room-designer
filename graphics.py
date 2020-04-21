@@ -6,7 +6,7 @@ class roomObject():
                  color = (0, 0, 255, 1),
                  rect = None, # or (x, y, w, h)
                  circle = None, # or (x, y, r)
-                 outline = 1, # is width for circles
+                 outline = 0, # is width for circles
                  text = None):
         self.color = color
         self.rect = rect
@@ -36,6 +36,12 @@ class roomObject():
         if self.text is not None:
             text_surface = self.font.render(self.text, 1, self.textColor)
             surface.blit(text_surface, (x, y))
+
+    def setPos(x, y):
+        if self.rect is None:
+            self.circle = [x, y, self.circle[2]]
+        else:
+            self.rect = [x, y] + self.rect[2:]
 
 class gridSpace():
     def __init__(self,
@@ -67,6 +73,9 @@ class gridSpace():
             text_surface = self.font.render(self.text, 1, (0, 0, 0))
             surface.blit(text_surface, self.rect)
         pygame.draw.rect(surface, self.color, self.rect, self.outline)
+
+    def getCenter(self):
+        return [self.rect[0] + self.rect[2] // 2, self.rect[1] + self.rect[3] // 2]
 
     def highlight(self, color = None):
         if color is None:
@@ -129,6 +138,9 @@ class grid():
                                     self.spaceDims[1]],
                               text = text))
 
+    def add_object(self, obj):
+        self.objects.append(obj)
+
     def draw(self, surface):
         # Draw grid spaces
         for w in range(self.dims[0]):
@@ -137,9 +149,17 @@ class grid():
 
         # Draw objects
         for obj in self.objects:
-            obj.draw()
+            obj.draw(surface)
+
+    def getCoords(self, spaceCoords, center=False):
+        """Returns the rectangle of a space, or the x, y center coords, based on space coordinates"""
+        space = self.gridSpaces[spaceCoords[0]][spaceCoords[1]]
+        if center:
+            return space.getCenter()
+        else:
+            return space.rect
     
-    def get_space(self, cursorCoords):
+    def getSpace(self, cursorCoords):
         """Returns the space coordinates w,h based on cursor coordinates."""
         space = [0, 0]
 
