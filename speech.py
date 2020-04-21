@@ -43,6 +43,7 @@ def process_command(text):
     if "add" in text or "create" in text:
         location = [-1, -1]
         size = [1, 1]
+        outline = 0
         if "at" in text:
             location = either_side(text, "and")
             location[0] -= 1
@@ -55,12 +56,16 @@ def process_command(text):
         elif "table" in text or "rectangle" in text:
             shape = "rectangle"
             color = (0, 0, 255)
+        elif "room" in text or "salon" in text:
+            shape = "rectangle"
+            color = (255, 0, 0)
+            outline = 1
         else:
             # TODO
             shape = "circle"
             color = (0, 0, 255)
         
-        pygame.event.post(pygame.event.Event(events.create_type, shape=shape, location=location, color=color, size=size))
+        pygame.event.post(pygame.event.Event(events.create_type, shape=shape, location=location, color=color, size=size, outline=outline))
             
     pygame.event.post(events.done_listening_event)
     return True
