@@ -64,11 +64,17 @@ while not done:
         # Creating things
         if event.type == events.create_type:
             location = event.location
+            print(event)
             if event.location == [-1, -1]:
                 location = roomGrid.lockedSpace
             if event.shape == "circle":
                 obj = roomObject(event.color, circle=roomGrid.getCoords(location, True) + [roomGrid.spaceDims[0] // 2])
-                roomGrid.add_object(obj)
+                roomGrid.addObject(obj)
+            elif event.shape == "rectangle":
+                rect = roomGrid.getCoords(location)
+                rect = rect[:2] + [event.size[0] * roomGrid.spaceDims[0], event.size[1] * roomGrid.spaceDims[1]]
+                obj = roomObject(event.color, rect=rect)
+                roomGrid.addObject(obj)
 
     screen.fill((255, 255, 255))
     

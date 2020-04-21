@@ -138,7 +138,7 @@ class grid():
                                     self.spaceDims[1]],
                               text = text))
 
-    def add_object(self, obj):
+    def addObject(self, obj):
         self.objects.append(obj)
 
     def draw(self, surface):
