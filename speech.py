@@ -23,8 +23,9 @@ def correct_text(text):
         [["nine"], "9"],
         [["ten"], "10"],
         [["+"], "and"],
+        [["x"], "by"],
         [["buy"], "by"],
-        [["criticize"], "create a size"]
+        [["criticize", "play"], "create a size"]
     ]
 
     for i in range(len(text)):
@@ -133,10 +134,11 @@ def listen():
         GOOGLE_CLOUD_SPEECH_CREDENTIALS = f.read()
 
     r = sr.Recognizer()
+    r.energy_threshold = 1000
     with sr.Microphone() as source:
         while True:
             print("Say something!")
-            audio = r.listen(source)
+            audio = r.listen(source, phrase_time_limit=6)
 
             print("let's see...")
 

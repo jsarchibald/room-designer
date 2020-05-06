@@ -37,6 +37,7 @@ roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], Tr
 messageCenter = messageCenter(GRID_PX_DIMS[0] + 10, 10)
 
 listener_thread = threading.Thread(target=listen)
+listener_thread.daemon = True
 listener_thread.start()
 
 while not done:
@@ -81,17 +82,22 @@ while not done:
                 obj = roomObject(event.color,
                                  circle=center + radius,
                                  outline=event.outline,
-                                 text="C",
+                                 #text="C",
                                  objType=event.obj_type,
                                  footprint=list(location) + [1, 1]) # This needs to be updated if we ever do circles more than one gridspace
                 roomGrid.addObject(obj)
             elif event.shape == "rectangle":
                 rect = roomGrid.getCoords(location)
-                rect = rect[:2] + [event.size[0] * roomGrid.spaceDims[0], event.size[1] * roomGrid.spaceDims[1]]
+
+                # Size should max out based on grid dimensions -- that's handled here
+                rect = rect[:2] + \
+                       [min(event.size[0], GRID_DIMS[0] - location[0]) * roomGrid.spaceDims[0],
+                        min(event.size[1], GRID_DIMS[1] - location[1]) * roomGrid.spaceDims[1]]
+
                 obj = roomObject(event.color,
                                  rect=rect,
                                  outline=event.outline,
-                                 text="T",
+                                 #text="T",
                                  objType=event.obj_type,
                                  footprint=location + [event.size[0], event.size[1]])
                 roomGrid.addObject(obj)

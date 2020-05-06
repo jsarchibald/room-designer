@@ -147,7 +147,9 @@ class grid():
         self.objects.append(obj)
         for w in range(obj.footprint[2]):
             for h in range(obj.footprint[3]):
-                self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].addObject(obj)
+                if len(self.gridSpaces) > obj.footprint[0] + w:
+                    if len(self.gridSpaces[obj.footprint[0] + w]) > obj.footprint[1] + h:
+                        self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].addObject(obj)
 
     def draw(self, surface):
         # Draw grid spaces
@@ -201,14 +203,24 @@ class grid():
 
     def removeObject(self, objType, location):
         """Removes the first instance of object with objType that exists at location"""
+        smallestObj = None
         for obj in self.gridSpaces[location[0]][location[1]].getObjects():
             if obj.objType == objType or objType == "any":
-                for w in range(obj.footprint[2]):
-                    for h in range(obj.footprint[3]):
-                        self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
-                self.objects.remove(obj)
+                # Compare areas - smaller area should get picked
+                if smallestObj is None \
+                   or (obj.footprint[2] * obj.footprint[3] < smallestObj.footprint[2] * smallestObj.footprint[3]):
+                    smallestObj = obj
 
-                return True
+        if smallestObj is None:
+            return False
+        else:
+            obj = smallestObj
+            for w in range(obj.footprint[2]):
+                for h in range(obj.footprint[3]):
+                    self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
+            self.objects.remove(obj)
+
+            return True
 
     def toggleHighlight(self, spaceCoords, color = (210, 210, 210, 1)):
         """Toggles a space to highlight (or not)"""
