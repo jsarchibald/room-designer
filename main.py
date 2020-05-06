@@ -49,9 +49,15 @@ while not done:
             done = True
             messageCenter.setText("Exiting program...")
         if event.type == pygame.VIDEORESIZE and window_const == pygame.RESIZABLE:
+            messageCenter.setText("Resizing window.")
             screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
             SCREEN_DIMS = event.size
-            messageCenter.setText("Resizing window.")
+            messageCenter.setText("Waiting for voice command.")
+
+        if event.type == events.save_type:
+            messageCenter.setText("Saving...")
+            roomGrid.saveFile()
+            messageCenter.setText("Waiting for voice command.")
 
         # What to do when waiting for a command to be speech-to-text converted
         if event.type == events.capture_space_type:

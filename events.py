@@ -12,3 +12,5 @@ error_event = pygame.event.Event(error_type)
 create_type = pygame.USEREVENT + 4
 
 delete_type = pygame.USEREVENT + 5
+
+save_type = pygame.USEREVENT + 6

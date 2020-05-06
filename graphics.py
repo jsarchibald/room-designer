@@ -1,3 +1,4 @@
+import json
 import pygame
 import numpy as np
 
@@ -42,7 +43,20 @@ class roomObject():
             text_surface = self.font.render(self.text, 1, self.textColor)
             surface.blit(text_surface, (x, y))
 
-    def setPos(x, y):
+    def getAttributes(self):
+        attributes = {
+            "color": self.color,
+            "rect": self.rect,
+            "circle": self.circle,
+            "outline": self.outline,
+            "textColor": self.textColor,
+            "text": self.text,
+            "objType": self.objType,
+            "footprint": self.footprint
+        }
+        return attributes
+
+    def setPos(self, x, y):
         if self.rect is None:
             self.circle = [x, y, self.circle[2]]
         else:
@@ -117,7 +131,18 @@ class gridSpace():
         self.highlighted = False
 
 class grid():
-    def __init__(self, width = 5, height = 5, totalWidth = 500, totalHeight = 500, numbers = False, color = (200, 200, 200, 1)):
+    def __init__(self,
+                 width = 5,
+                 height = 5,
+                 totalWidth = 500,
+                 totalHeight = 500,
+                 numbers = False,
+                 color = (200, 200, 200, 1),
+                 file_name = "New_room.json",
+                 title = "New room"):
+
+        self.file_name = file_name
+        self.title = title
         self.dims = [width, height]
         self.totalDims = [totalWidth, totalHeight]
         self.spaceDims = [totalWidth // width, totalHeight // height]
@@ -221,6 +246,38 @@ class grid():
             self.objects.remove(obj)
 
             return True
+
+    def saveFile(self, path = None):
+        """Saves object list as JSON to given path"""
+        if path is None:
+            path = self.file_name
+
+        save = {
+            "meta": {
+                "title": self.title,
+                "dimensions": self.dims
+            },
+            "objects": self.saveObjects()
+        }
+
+        try:
+            with open(path, "w") as f:
+                json.dump(save, f)
+            return True
+        except:
+            return False
+
+    def saveObjects(self):
+        """Saves objects to a list"""
+        objects = list()
+        for obj in self.objects:
+            objects.append(obj.getAttributes())
+        
+        return objects
+
+    def setFileName(self, name):
+        """Set file output path"""
+        self.file_name = name
 
     def toggleHighlight(self, spaceCoords, color = (210, 210, 210, 1)):
         """Toggles a space to highlight (or not)"""

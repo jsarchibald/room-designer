@@ -57,9 +57,11 @@ def process_command(text):
     if "quit" in text or "bye" in text or "exit" in text or "close" in text or "goodbye" in text:
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         return False
+    elif "save" in text:
+        pygame.event.post(pygame.event.Event(events.save_type))
 
     # Creating things
-    if "add" in text or "create" in text:
+    elif "add" in text or "create" in text:
         location = [-1, -1]
         size = [1, 1]
         outline = 0
