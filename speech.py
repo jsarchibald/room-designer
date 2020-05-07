@@ -59,7 +59,7 @@ def process_command(text):
         return False
     elif "open" in text:
         pygame.event.post(events.file_open)
-    elif "new" in text and ("design" in text or "room" in text):
+    elif "new" in text and ("design" in text or "room" in text or "file" in text):
         pygame.event.post(events.file_new)
     elif "save" in text:
         pygame.event.post(events.file_save)
@@ -150,7 +150,10 @@ def listen():
 
             try:
                 pygame.event.post(events.capture_space_event)
-                text = r.recognize_google_cloud(audio, language="en-us", credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS, preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit"])
+                text = r.recognize_google_cloud(audio, 
+                                                language="en-us",
+                                                credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS,
+                                                preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open"])
                 try:
                     res = process_command(text)
                 except:

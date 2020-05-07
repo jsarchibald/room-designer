@@ -27,6 +27,8 @@ GRID_DIMS = [20, 20]
 
 # Open window
 pygame.init()
+icon = pygame.image.load("img/icon_32.png")
+pygame.display.set_icon(icon)
 screen = pygame.display.set_mode(SCREEN_DIMS, window_const)
 pygame.display.set_caption("Room Designer")
 
@@ -45,6 +47,15 @@ listener_thread = threading.Thread(target=listen)
 listener_thread.daemon = True
 listener_thread.start()
 
+# Loading screen icon, so the listener thread has a second to start listening
+screen.fill((255, 255, 255))
+icon = pygame.image.load("img/icon_512.png")
+screen.blit(icon, ((SCREEN_DIMS[0] - 512) // 2, (SCREEN_DIMS[1] - 512) // 2))
+pygame.display.flip()
+
+pygame.time.wait(3000)
+
+# Animation loop
 while not done:
     clock.tick(10)
 
@@ -62,13 +73,20 @@ while not done:
         # New, open, save
         if event.type == events.file_type:
             if event.method == "open":
+                # Have to make resizable so file dialog appears
+                if window_const == pygame.FULLSCREEN:
+                    pygame.display.set_mode(SCREEN_DIMS, pygame.RESIZABLE)
+
                 path = filedialog.askopenfilename(title="Choose a file.", filetypes=[("JSON", ".json")], defaultextension=".json")
                 roomGrid.openFile(path)
+
+                if window_const == pygame.FULLSCREEN:
+                    pygame.display.set_mode(SCREEN_DIMS, pygame.FULLSCREEN)
             elif event.method == "new":
                 roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
             elif event.method == "save":
                 messageCenter.setText("Saving...")
-                roomGrid.saveFile()
+                roomGrid.saveFile(window_const, SCREEN_DIMS)
                 messageCenter.setText("Waiting for voice command.")
 
         # What to do when waiting for a command to be speech-to-text converted

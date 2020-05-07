@@ -250,6 +250,9 @@ class grid():
                                f[1] * self.spaceDims[1],
                                f[2] * self.spaceDims[0],
                                f[3] * self.spaceDims[1]]
+            if obj["circle"] is not None:
+                f = obj["footprint"]
+                obj["circle"] = self.getCoords(f[0:2], True) + [self.spaceDims[0] // 2]
 
             roomObj = roomObject(color=obj["color"],
                                  rect=obj["rect"],
@@ -283,12 +286,19 @@ class grid():
 
             return True
 
-    def saveFile(self, path = None):
+    def saveFile(self, window_const, screen_dims, path = None):
         """Saves object list as JSON to given path"""
         if path is None:
             path = self.file_name
         if path == "New_room.json":
+            # Have to make resizable so file dialog appears
+            if window_const == pygame.FULLSCREEN:
+                pygame.display.set_mode(screen_dims, pygame.RESIZABLE)
+
             path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JSON", ".json")], defaultextension=".json")
+
+            if window_const == pygame.FULLSCREEN:
+                pygame.display.set_mode(screen_dims, pygame.FULLSCREEN)
         self.file_name = path
 
         save = {
