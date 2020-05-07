@@ -152,7 +152,7 @@ class grid():
         self.spaceDims = [totalWidth // width, totalHeight // height]
         self.hoverSpace = [0, 0]
         self.lockedSpace = [0, 0]
-        self.waitFunction = None
+        self.waitFunction = []
 
         self.objects = set()
         self.createGridSpaces(width, height)

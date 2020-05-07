@@ -4,6 +4,8 @@ from time import sleep
 
 import events
 
+SPEECH_CRED_FILE = "../../Dropbox/College/2019-2020/6.835/Project/6835-95e43858e35a.json"
+
 def correct_text(text):
     """Because Google gives English, not commands"""
 
@@ -86,16 +88,16 @@ def process_command(text, roomGrid):
         # Object types
         if "cocktail" in text or "round" in text:
             shape = "circle"
-            color = (0, 255, 0)
+            color = (70, 70, 70)
             obj_type = "cocktail"
         elif "table" in text or "rectangle" in text:
             shape = "rectangle"
-            color = (0, 0, 255)
+            color = (95, 32, 0)
             obj_type = "table"
         elif "room" in text or "salon" in text:
             shape = "rectangle"
             color = (255, 0, 0)
-            outline = 1
+            outline = 2
             obj_type = "room"
         else:
             # TODO
@@ -173,7 +175,7 @@ def process_command(text, roomGrid):
     return True
 
 def listen(roomGrid):
-    with open("../../Dropbox/College/2019-2020/6.835/Project/6835-95e43858e35a.json") as f:
+    with open(SPEECH_CRED_FILE) as f:
         GOOGLE_CLOUD_SPEECH_CREDENTIALS = f.read()
 
     r = sr.Recognizer()
