@@ -1,6 +1,6 @@
 import json
 import pygame
-import numpy as np
+from tkinter import filedialog
 
 class roomObject():
     def __init__(self,
@@ -68,7 +68,7 @@ class gridSpace():
                  highlightColor = (210, 210, 210, 1),
                  rect = [0, 0, 50, 50],
                  outline = 1,
-                 objectsHere = [],
+                 objectsHere = None,
                  highlighted = False,
                  text = None):
         self.color = color
@@ -78,6 +78,8 @@ class gridSpace():
         self.outline = outline
         self.defaultOutline = outline
         self.objectsHere = objectsHere
+        if objectsHere is None:
+            self.objectsHere = set()
         self.highlighted = highlighted
         self.font = pygame.font.Font("Roboto-Regular.ttf", 16)
         self.text = text
@@ -85,7 +87,7 @@ class gridSpace():
             self.text = bytes(str(text), "utf-8")
 
     def addObject(self, obj):
-        self.objectsHere.append(obj)
+        self.objectsHere.add(obj)
 
     def draw(self, surface):
         if self.text is not None:
@@ -149,9 +151,19 @@ class grid():
         self.hoverSpace = [0, 0]
         self.lockedSpace = [0, 0]
 
-        self.objects = list()
-        self.gridSpaces = list()
+        self.objects = set()
+        self.createGridSpaces(width, height)
 
+    def addObject(self, obj):
+        self.objects.add(obj)
+        for w in range(obj.footprint[2]):
+            for h in range(obj.footprint[3]):
+                if len(self.gridSpaces) > obj.footprint[0] + w:
+                    if len(self.gridSpaces[obj.footprint[0] + w]) > obj.footprint[1] + h:
+                        self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].addObject(obj)
+
+    def createGridSpaces(self, width, height):
+        self.gridSpaces = list()
         for w in range(width):
             self.gridSpaces.append(list())
             for h in range(height):
@@ -167,14 +179,6 @@ class grid():
                                     self.spaceDims[0],
                                     self.spaceDims[1]],
                               text = text))
-
-    def addObject(self, obj):
-        self.objects.append(obj)
-        for w in range(obj.footprint[2]):
-            for h in range(obj.footprint[3]):
-                if len(self.gridSpaces) > obj.footprint[0] + w:
-                    if len(self.gridSpaces[obj.footprint[0] + w]) > obj.footprint[1] + h:
-                        self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].addObject(obj)
 
     def draw(self, surface):
         # Draw grid spaces
@@ -226,8 +230,40 @@ class grid():
         """Locks a space while waiting for text to process"""
         self.lockedSpace = self.hoverSpace
 
+    def openFile(self, path):
+        """Opens a saved room design"""
+        self.file_name = path
+        
+        with open(path) as f:
+            data = json.load(f)
+        
+        self.title = data["meta"]["title"]
+        self.dims = data["meta"]["dimensions"]
+        self.spaceDims = [self.totalDims[0] // self.dims[0], self.totalDims[1] // self.dims[1]]
+        self.createGridSpaces(self.dims[0], self.dims[1])
+        
+        for obj in data["objects"]:
+            # Footprint matters here, to adjust for different-sized screens.
+            if obj["rect"] is not None:
+                f = obj["footprint"]
+                obj["rect"] = [f[0] * self.spaceDims[0],
+                               f[1] * self.spaceDims[1],
+                               f[2] * self.spaceDims[0],
+                               f[3] * self.spaceDims[1]]
+
+            roomObj = roomObject(color=obj["color"],
+                                 rect=obj["rect"],
+                                 circle=obj["circle"],
+                                 outline=obj["outline"],
+                                 text=obj["text"],
+                                 objType=obj["objType"],
+                                 footprint=obj["footprint"])
+            self.addObject(roomObj)
+
     def removeObject(self, objType, location):
         """Removes the first instance of object with objType that exists at location"""
+        print(location)
+        print(len(self.gridSpaces[location[0]][location[1]].getObjects()))
         smallestObj = None
         for obj in self.gridSpaces[location[0]][location[1]].getObjects():
             if obj.objType == objType or objType == "any":
@@ -251,6 +287,9 @@ class grid():
         """Saves object list as JSON to given path"""
         if path is None:
             path = self.file_name
+        if path == "New_room.json":
+            path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JSON", ".json")], defaultextension=".json")
+        self.file_name = path
 
         save = {
             "meta": {

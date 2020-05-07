@@ -57,8 +57,12 @@ def process_command(text):
     if "quit" in text or "bye" in text or "exit" in text or "close" in text or "goodbye" in text:
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         return False
+    elif "open" in text:
+        pygame.event.post(events.file_open)
+    elif "new" in text and ("design" in text or "room" in text):
+        pygame.event.post(events.file_new)
     elif "save" in text:
-        pygame.event.post(pygame.event.Event(events.save_type))
+        pygame.event.post(events.file_save)
 
     # Creating things
     elif "add" in text or "create" in text:
@@ -146,7 +150,7 @@ def listen():
 
             try:
                 pygame.event.post(events.capture_space_event)
-                text = r.recognize_google_cloud(audio, language="en-us", credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS)
+                text = r.recognize_google_cloud(audio, language="en-us", credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS, preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit"])
                 try:
                     res = process_command(text)
                 except:

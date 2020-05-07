@@ -4,6 +4,8 @@ from pyleap.leap import getLeapInfo, getLeapFrame
 from screeninfo import get_monitors
 from sys import argv
 import threading
+import tkinter as tk
+from tkinter import filedialog
 
 import events
 from graphics import grid, gridSpace, messageCenter, roomObject
@@ -27,6 +29,9 @@ GRID_DIMS = [20, 20]
 pygame.init()
 screen = pygame.display.set_mode(SCREEN_DIMS, window_const)
 pygame.display.set_caption("Room Designer")
+
+root = tk.Tk()
+root.withdraw()
 
 # Start grid, loops for input
 done = False
@@ -54,21 +59,29 @@ while not done:
             SCREEN_DIMS = event.size
             messageCenter.setText("Waiting for voice command.")
 
-        if event.type == events.save_type:
-            messageCenter.setText("Saving...")
-            roomGrid.saveFile()
-            messageCenter.setText("Waiting for voice command.")
+        # New, open, save
+        if event.type == events.file_type:
+            if event.method == "open":
+                path = filedialog.askopenfilename(title="Choose a file.", filetypes=[("JSON", ".json")], defaultextension=".json")
+                roomGrid.openFile(path)
+            elif event.method == "new":
+                roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
+            elif event.method == "save":
+                messageCenter.setText("Saving...")
+                roomGrid.saveFile()
+                messageCenter.setText("Waiting for voice command.")
 
         # What to do when waiting for a command to be speech-to-text converted
-        if event.type == events.capture_space_type:
-            roomGrid.lockSpace()
-            messageCenter.setText("Parsing voice command...")
-        if event.type == events.done_listening_type:
-            messageCenter.setText("Waiting for voice command.")
+        if event.type == events.ui_type:
+            if event.method == "capture_space":
+                roomGrid.lockSpace()
+                messageCenter.setText("Parsing voice command...")
+            elif event.method == "done_listening":
+                messageCenter.setText("Waiting for voice command.")
+        
+        # Error events
         if event.type == events.error_type:
             messageCenter.setText(event.error)
-
-        print(event)
 
         # Creating things
         if event.type == events.create_type:
@@ -94,18 +107,18 @@ while not done:
                 roomGrid.addObject(obj)
             elif event.shape == "rectangle":
                 rect = roomGrid.getCoords(location)
+                w = min(event.size[0], GRID_DIMS[0] - location[0])
+                h = min(event.size[1], GRID_DIMS[1] - location[1])
 
                 # Size should max out based on grid dimensions -- that's handled here
-                rect = rect[:2] + \
-                       [min(event.size[0], GRID_DIMS[0] - location[0]) * roomGrid.spaceDims[0],
-                        min(event.size[1], GRID_DIMS[1] - location[1]) * roomGrid.spaceDims[1]]
+                rect = rect[:2] + [w * roomGrid.spaceDims[0], h * roomGrid.spaceDims[1]]
 
                 obj = roomObject(event.color,
                                  rect=rect,
                                  outline=event.outline,
                                  #text="T",
                                  objType=event.obj_type,
-                                 footprint=location + [event.size[0], event.size[1]])
+                                 footprint=location + [w, h])
                 roomGrid.addObject(obj)
 
         # Deleting things
@@ -113,6 +126,8 @@ while not done:
             location = event.location
             if location[0] >= GRID_DIMS[0] or location[1] >= GRID_DIMS[1]:
                 continue
+            elif location == [-1, -1]:
+                location = roomGrid.lockedSpace
             
             roomGrid.removeObject(event.obj_type, location)
 
