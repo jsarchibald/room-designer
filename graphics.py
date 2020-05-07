@@ -16,7 +16,7 @@ class roomObject():
         self.rect = rect
         self.circle = circle
         self.outline = outline
-        self.font = pygame.font.Font("Roboto-Regular.ttf", 16)
+        self.font = pygame.font.Font("fonts/Roboto-Regular.ttf", 16)
         self.textColor = textColor
         self.text = text
         self.objType = objType
@@ -92,7 +92,7 @@ class gridSpace():
         if objectsHere is None:
             self.objectsHere = set()
         self.highlighted = highlighted
-        self.font = pygame.font.Font("Roboto-Regular.ttf", 16)
+        self.font = pygame.font.Font("fonts/Roboto-Regular.ttf", 16)
         self.text = text
         if text is not None:
             self.text = bytes(str(text), "utf-8")
@@ -392,7 +392,7 @@ class messageCenter():
         self.x = x
         self.y = y
         self.defaultColor = defaultColor
-        self.font = pygame.font.Font("Roboto-Regular.ttf", 20)
+        self.font = pygame.font.Font("fonts/Roboto-Regular.ttf", 20)
         self.text = text
 
         # Key to objects
