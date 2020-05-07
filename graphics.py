@@ -370,10 +370,34 @@ class messageCenter():
         self.y = y
         self.defaultColor = defaultColor
         self.font = pygame.font.Font("Roboto-Regular.ttf", 20)
-        self.font.set_italic(True)
         self.text = text
 
+        # Key to objects
+        self.table = roomObject((95, 32, 0), (self.x, self.y + 50, 60, 20), objType="table")
+        self.table_label = [self.font.render("Table", 1, self.defaultColor), self.x + 70, self.y + 50]
+
+        self.cocktail = roomObject((70, 70, 70), circle=(self.x + 10, self.y + 90, 10), objType="table")
+        self.cocktail_label = [self.font.render("Cocktail table", 1, self.defaultColor), self.x + 70, self.y + 80]
+
+        self.room = roomObject((255, 0, 0), (self.x, self.y + 110, 60, 20), outline=2, objType="room")
+        self.room_label = [self.font.render("Room", 1, self.defaultColor), self.x + 70, self.y + 110]
+
+        self.commands = [pygame.image.load("img/commands.png"), self.x, self.y + 140]
+
     def draw(self, surface, color = None):
+        # The key to objects
+        self.table.draw(surface)
+        surface.blit(self.table_label[0], self.table_label[1:])
+
+        self.cocktail.draw(surface)
+        surface.blit(self.cocktail_label[0], self.cocktail_label[1:])
+
+        self.room.draw(surface)
+        surface.blit(self.room_label[0], self.room_label[1:])
+
+        surface.blit(self.commands[0], self.commands[1:])
+
+        # The message text
         if self.text is not None:
             if color is None:
                 color = self.defaultColor
