@@ -124,7 +124,8 @@ while not done:
                 obj = roomObject(event.color,
                                  circle=center + radius,
                                  outline=event.outline,
-                                 #text="C",
+                                 text=event.text,
+                                 textColor=event.text_color,
                                  objType=event.obj_type,
                                  footprint=list(location) + [1, 1]) # This needs to be updated if we ever do circles more than one gridspace
                 roomGrid.addObject(obj)
@@ -139,7 +140,8 @@ while not done:
                 obj = roomObject(event.color,
                                  rect=rect,
                                  outline=event.outline,
-                                 #text="T",
+                                 text=event.text,
+                                 textColor=event.text_color,
                                  objType=event.obj_type,
                                  footprint=location + [w, h])
                 roomGrid.addObject(obj)

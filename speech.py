@@ -41,7 +41,6 @@ def either_side(text, delimiter = "and", default = [-1, -1]):
     """Take form 12 AND 15 to return [12, 15] for example"""
     if delimiter in text:
         pos = text.index(delimiter)
-        print(text)
         if text[pos - 1].isnumeric() and text[pos + 1].isnumeric():
             return [int(text[pos - 1]), int(text[pos + 1])]
         else:
@@ -84,25 +83,34 @@ def process_command(text, roomGrid):
             location[1] -= 1
         if "by" in text or "size" in text:
             size = either_side(text, "by", [1, 1])
+        if "called" in text:
+            called = text[text.index("called") + 1:]
+            called = " ".join(called)
+        else:
+            called = None
 
         # Object types
         if "cocktail" in text or "round" in text:
             shape = "circle"
             color = (70, 70, 70)
             obj_type = "cocktail"
+            text_color = (255, 255, 255)
         elif "table" in text or "rectangle" in text:
             shape = "rectangle"
             color = (95, 32, 0)
             obj_type = "table"
+            text_color = (255, 255, 255)
         elif "room" in text or "salon" in text:
             shape = "rectangle"
             color = (255, 0, 0)
             outline = 2
             obj_type = "room"
+            text_color = (0, 0, 0)
         else:
             # TODO
             shape = "circle"
             color = (0, 0, 255)
+            text_color = (255, 255, 255)
         
         # Post event
         pygame.event.post(
@@ -113,7 +121,9 @@ def process_command(text, roomGrid):
                                color=color,
                                size=size,
                                outline=outline,
-                               obj_type=obj_type))
+                               obj_type=obj_type,
+                               text=called,
+                               text_color=text_color))
     
     # Moving things
     # fruit is a keyword because Google thinks "fruit" and "cocktail" go together real nice...

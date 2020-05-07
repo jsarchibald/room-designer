@@ -10,13 +10,14 @@ class roomObject():
                  outline = 0, # is width for circles
                  text = None,
                  objType = "room",
-                 footprint = [0, 0, 1, 1]):
+                 footprint = [0, 0, 1, 1],
+                 textColor = (255, 255, 255)):
         self.color = color
         self.rect = rect
         self.circle = circle
         self.outline = outline
         self.font = pygame.font.Font("Roboto-Regular.ttf", 16)
-        self.textColor = (255, 255, 255)
+        self.textColor = textColor
         self.text = text
         self.objType = objType
         self.footprint = footprint
@@ -50,7 +51,7 @@ class roomObject():
             "circle": self.circle,
             "outline": self.outline,
             "textColor": self.textColor,
-            "text": self.text,
+            "text": self.text.decode("utf-8"),
             "objType": self.objType,
             "footprint": self.footprint
         }
