@@ -81,13 +81,23 @@ while not done:
 
                 path = filedialog.askopenfilename(title="Choose a file.", filetypes=[("JSON", ".json")], defaultextension=".json")
 
+                roomGrid.dead = True
                 roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
                 roomGrid.openFile(path)
+
+                listener_thread = threading.Thread(target=listen, args=[roomGrid])
+                listener_thread.daemon = True
+                listener_thread.start()
 
                 if window_const == pygame.FULLSCREEN:
                     pygame.display.set_mode(SCREEN_DIMS, pygame.FULLSCREEN)
             elif event.method == "new":
+                roomGrid.dead = True
                 roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
+
+                listener_thread = threading.Thread(target=listen, args=[roomGrid])
+                listener_thread.daemon = True
+                listener_thread.start()
             elif event.method == "save":
                 messageCenter.setText("Saving...")
                 roomGrid.saveFile(window_const, SCREEN_DIMS)
@@ -172,6 +182,16 @@ while not done:
                 roomGrid.setWaitFunction(None, None)
 
                 roomGrid.moveObject(objType, location, to_location)
+        
+        # Renaming things
+        elif event.type == events.design_type and event.method == "rename":
+            location = event.location
+            if location[0] >= GRID_DIMS[0] or location[1] >= GRID_DIMS[1]:
+                continue
+            elif location == [-1, -1]:
+                location = roomGrid.lockedSpace
+            
+            roomGrid.renameObject(event.obj_type, location, event.text)
 
         # Deleting things
         elif event.type == events.design_type and event.method == "delete":
@@ -192,8 +212,6 @@ while not done:
     info = getLeapInfo()
     if info.connected:
         hand = getLeapFrame().hands[0]
-        #x_window = int(np.interp(hand.palm_pos[0], [-150, 150], [0, GRID_PX_DIMS[0]]))
-        #y_window = int(np.interp(hand.palm_pos[1], [100, 350], [GRID_PX_DIMS[1], 0]))
         x_grid = int(np.interp(hand.palm_pos[0], [-150, 150], [0, GRID_DIMS[0] - 1]))
         y_grid = int(np.interp(hand.palm_pos[1], [100, 350], [GRID_DIMS[1] - 1, 0]))
 

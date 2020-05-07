@@ -106,24 +106,27 @@ def process_command(text, roomGrid):
             outline = 2
             obj_type = "room"
             text_color = (0, 0, 0)
-        else:
-            # TODO
-            shape = "circle"
-            color = (0, 0, 255)
+        elif "couch" in text or "sofa" in text:
+            shape = "rectangle"
+            color = (154, 0, 130)
+            obj_type = "couch"
             text_color = (255, 255, 255)
+        else:
+            shape = None
         
-        # Post event
-        pygame.event.post(
-            pygame.event.Event(events.design_type,
-                               method="create",
-                               shape=shape,
-                               location=location,
-                               color=color,
-                               size=size,
-                               outline=outline,
-                               obj_type=obj_type,
-                               text=called,
-                               text_color=text_color))
+        if shape is not None:
+            # Post event
+            pygame.event.post(
+                pygame.event.Event(events.design_type,
+                                method="create",
+                                shape=shape,
+                                location=location,
+                                color=color,
+                                size=size,
+                                outline=outline,
+                                obj_type=obj_type,
+                                text=called,
+                                text_color=text_color))
     
     # Moving things
     # fruit is a keyword because Google thinks "fruit" and "cocktail" go together real nice...
@@ -137,6 +140,8 @@ def process_command(text, roomGrid):
             location[0] -= 1
             location[1] -= 1
             remaining_text = text[(text.index("and") + 1):]
+        else:
+            remaining_text = text
 
         if "and" in remaining_text:
             to_location = either_side(remaining_text, "and")
@@ -150,11 +155,51 @@ def process_command(text, roomGrid):
             obj_type = "table"
         elif "room" in text:
             obj_type = "room"
+        elif "couch" in text or "sofa" in text:
+            obj_type = "couch"
         elif "this" in text or "that" in text:
             obj_type = "any"
 
         # Post event
         evt = pygame.event.Event(events.design_type, method="move", location=location, to_location=to_location, obj_type=obj_type)
+        pygame.event.post(evt)
+
+    # Renaming things
+    elif "rename" in text:
+        location = [-1, -1]
+
+        # Parameters
+        if "at" in text:
+            location = either_side(text, "and")
+            location[0] -= 1
+            location[1] -= 1
+
+        if "to" in text:
+            called = text[text.index("to") + 1:]
+            called = " ".join(called)
+        elif "as" in text:
+            called = text[text.index("as") + 1:]
+            called = " ".join(called)
+        elif "2" in text:
+            called = text[text.index("2") + 1:]
+            called = " ".join(called)
+        else:
+            called = None
+
+        # Object types
+        if "cocktail" in text:
+            obj_type = "cocktail"
+        elif "table" in text:
+            obj_type = "table"
+        elif "room" in text:
+            obj_type = "room"
+        elif "couch" in text or "sofa" in text:
+            obj_type = "couch"
+        elif "this" in text or "that" in text:
+            obj_type = "any"
+
+        # Post event
+        evt = pygame.event.Event(events.design_type, method="rename", location=location, obj_type=obj_type, text=called)
         pygame.event.post(evt)
 
     # Deleting things
@@ -174,6 +219,8 @@ def process_command(text, roomGrid):
             obj_type = "table"
         elif "room" in text:
             obj_type = "room"
+        elif "couch" in text or "sofa" in text:
+            obj_type = "couch"
         elif "this" in text or "that" in text:
             obj_type = "any"
 
@@ -192,10 +239,10 @@ def listen(roomGrid):
     r.energy_threshold = 1000
     with sr.Microphone() as source:
         while True:
-            print("Say something!")
-            audio = r.listen(source, phrase_time_limit=6)
+            if roomGrid.dead:
+                break
 
-            print("let's see...")
+            audio = r.listen(source, phrase_time_limit=6)
 
             try:
                 pygame.event.post(events.capture_space_event)

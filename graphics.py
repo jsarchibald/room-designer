@@ -45,13 +45,17 @@ class roomObject():
             surface.blit(text_surface, (x, y))
 
     def getAttributes(self):
+        text = ""
+        if self.text != None:
+            text = self.text.decode("utf-8")
+        
         attributes = {
             "color": self.color,
             "rect": self.rect,
             "circle": self.circle,
             "outline": self.outline,
             "textColor": self.textColor,
-            "text": self.text.decode("utf-8"),
+            "text": text,
             "objType": self.objType,
             "footprint": self.footprint
         }
@@ -64,6 +68,10 @@ class roomObject():
         else:
             self.rect = [x, y] + self.rect[2:]
             self.footprint = [xs, ys] + self.footprint[2:]
+
+    def setText(self, text):
+        if text is not None:
+            self.text = bytes(str(text), "utf-8")
 
 class gridSpace():
     def __init__(self,
@@ -154,6 +162,7 @@ class grid():
         self.hoverSpace = [0, 0]
         self.lockedSpace = [0, 0]
         self.waitFunction = []
+        self.dead = False
 
         self.objects = set()
         self.createGridSpaces(width, height)
@@ -252,16 +261,18 @@ class grid():
     def moveObject(self, objType, location, to_location):
         """Removes the first instance of object with objType that exists at location"""
         obj = self.getSmallestAt(location, objType)
-        self.removeObject(objType, location)
+        
+        if obj != False:
+            self.removeObject(objType, location)
 
-        # If circle, use get_coords
-        if obj.circle is not None:
-            coords = self.getCoords(to_location, True)
-            obj.setPos(coords[0], coords[1], to_location[0], to_location[1])
-        elif obj.rect is not None:
-            obj.setPos(to_location[0] * self.spaceDims[0], to_location[1] * self.spaceDims[1], to_location[0], to_location[1])
+            # If circle, use get_coords
+            if obj.circle is not None:
+                coords = self.getCoords(to_location, True)
+                obj.setPos(coords[0], coords[1], to_location[0], to_location[1])
+            elif obj.rect is not None:
+                obj.setPos(to_location[0] * self.spaceDims[0], to_location[1] * self.spaceDims[1], to_location[0], to_location[1])
 
-        self.addObject(obj)
+            self.addObject(obj)
 
         return True
 
@@ -294,6 +305,7 @@ class grid():
                                  circle=obj["circle"],
                                  outline=obj["outline"],
                                  text=obj["text"],
+                                 textColor=obj["textColor"],
                                  objType=obj["objType"],
                                  footprint=obj["footprint"])
             self.addObject(roomObj)
@@ -301,10 +313,20 @@ class grid():
     def removeObject(self, objType, location):
         """Removes the first instance of object with objType that exists at location"""
         obj = self.getSmallestAt(location, objType)
-        for w in range(obj.footprint[2]):
-            for h in range(obj.footprint[3]):
-                self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
-        self.objects.remove(obj)
+        if obj != False:
+            for w in range(obj.footprint[2]):
+                for h in range(obj.footprint[3]):
+                    self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
+            self.objects.remove(obj)
+
+        return True
+
+    def renameObject(self, objType, location, text):
+        """Renames the first instance of object with objType that exists at location"""
+        obj = self.getSmallestAt(location, objType)
+        
+        if obj != False:
+            obj.setText(text)
 
         return True
 
@@ -383,7 +405,10 @@ class messageCenter():
         self.room = roomObject((255, 0, 0), (self.x, self.y + 110, 60, 20), outline=2, objType="room")
         self.room_label = [self.font.render("Room", 1, self.defaultColor), self.x + 70, self.y + 110]
 
-        self.commands = [pygame.image.load("img/commands.png"), self.x, self.y + 140]
+        self.couch = roomObject((154, 0, 130), (self.x, self.y + 140, 60, 20), objType="couch")
+        self.couch_label = [self.font.render("Couch", 1, self.defaultColor), self.x + 70, self.y + 140]
+
+        self.commands = [pygame.image.load("img/commands.png"), self.x, self.y + 170]
 
     def draw(self, surface, color = None):
         # The key to objects
@@ -395,6 +420,9 @@ class messageCenter():
 
         self.room.draw(surface)
         surface.blit(self.room_label[0], self.room_label[1:])
+
+        self.couch.draw(surface)
+        surface.blit(self.couch_label[0], self.couch_label[1:])
 
         surface.blit(self.commands[0], self.commands[1:])
 
