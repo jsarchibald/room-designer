@@ -47,7 +47,7 @@ def either_side(text, delimiter = "and", default = [-1, -1]):
     else:
         return default
 
-def process_command(text):
+def process_command(text, roomGrid):
     """Process voice commands. Returns False if program should quit."""
 
     text = correct_text(text)
@@ -63,6 +63,10 @@ def process_command(text):
         pygame.event.post(events.file_new)
     elif "save" in text:
         pygame.event.post(events.file_save)
+
+    # If finishing up a previous command
+    elif ("here" in text or "there" in text or "cheer" in text) and len(roomGrid.waitFunction) > 0:
+        pygame.event.post(pygame.event.Event(events.ui_type, method="finish_waiting"))
 
     # Creating things
     elif "add" in text or "create" in text:
@@ -100,7 +104,8 @@ def process_command(text):
         
         # Post event
         pygame.event.post(
-            pygame.event.Event(events.create_type,
+            pygame.event.Event(events.design_type,
+                               method="create",
                                shape=shape,
                                location=location,
                                color=color,
@@ -108,6 +113,38 @@ def process_command(text):
                                outline=outline,
                                obj_type=obj_type))
     
+    # Moving things
+    # fruit is a keyword because Google thinks "fruit" and "cocktail" go together real nice...
+    elif "move" in text or "relocate" in text or "fruit" in text:
+        location = [-1, -1]
+        to_location = [-1, -1]
+
+        # Parameters (if location given in speech command)
+        if "at" in text:
+            location = either_side(text, "and")
+            location[0] -= 1
+            location[1] -= 1
+            remaining_text = text[(text.index("and") + 1):]
+
+        if "and" in remaining_text:
+            to_location = either_side(remaining_text, "and")
+            to_location[0] -= 1
+            to_location[1] -= 1
+
+        # Object types
+        if "cocktail" in text:
+            obj_type = "cocktail"
+        elif "table" in text:
+            obj_type = "table"
+        elif "room" in text:
+            obj_type = "room"
+        elif "this" in text or "that" in text:
+            obj_type = "any"
+
+        # Post event
+        evt = pygame.event.Event(events.design_type, method="move", location=location, to_location=to_location, obj_type=obj_type)
+        pygame.event.post(evt)
+
     # Deleting things
     elif "remove" in text or "delete" in text:
         location = [-1, -1]
@@ -129,13 +166,13 @@ def process_command(text):
             obj_type = "any"
 
         # Post event
-        evt = pygame.event.Event(events.delete_type, location=location, obj_type=obj_type)
+        evt = pygame.event.Event(events.design_type, method="delete", location=location, obj_type=obj_type)
         pygame.event.post(evt)
             
     pygame.event.post(events.done_listening_event)
     return True
 
-def listen():
+def listen(roomGrid):
     with open("../../Dropbox/College/2019-2020/6.835/Project/6835-95e43858e35a.json") as f:
         GOOGLE_CLOUD_SPEECH_CREDENTIALS = f.read()
 
@@ -153,9 +190,9 @@ def listen():
                 text = r.recognize_google_cloud(audio, 
                                                 language="en-us",
                                                 credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS,
-                                                preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open"])
+                                                preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there"])
                 try:
-                    res = process_command(text)
+                    res = process_command(text, roomGrid)
                 except:
                     print("your code is wrong")
                 if not res:

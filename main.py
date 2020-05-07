@@ -1,4 +1,6 @@
 import numpy as np
+import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 import pygame
 from pyleap.leap import getLeapInfo, getLeapFrame
 from screeninfo import get_monitors
@@ -43,7 +45,7 @@ pygame.mouse.set_visible(False)
 roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
 messageCenter = messageCenter(GRID_PX_DIMS[0] + 10, 10)
 
-listener_thread = threading.Thread(target=listen)
+listener_thread = threading.Thread(target=listen, args=[roomGrid])
 listener_thread.daemon = True
 listener_thread.start()
 
@@ -78,6 +80,8 @@ while not done:
                     pygame.display.set_mode(SCREEN_DIMS, pygame.RESIZABLE)
 
                 path = filedialog.askopenfilename(title="Choose a file.", filetypes=[("JSON", ".json")], defaultextension=".json")
+
+                roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
                 roomGrid.openFile(path)
 
                 if window_const == pygame.FULLSCREEN:
@@ -95,14 +99,15 @@ while not done:
                 roomGrid.lockSpace()
                 messageCenter.setText("Parsing voice command...")
             elif event.method == "done_listening":
-                messageCenter.setText("Waiting for voice command.")
+                if messageCenter.text == "Parsing voice command...":
+                    messageCenter.setText("Waiting for voice command.")
         
         # Error events
         if event.type == events.error_type:
             messageCenter.setText(event.error)
 
         # Creating things
-        if event.type == events.create_type:
+        if event.type == events.design_type and event.method == "create":
             location = event.location
             if location[0] >= GRID_DIMS[0]:
                 location[0] = GRID_DIMS[0] - 1
@@ -139,8 +144,35 @@ while not done:
                                  footprint=location + [w, h])
                 roomGrid.addObject(obj)
 
+        # Moving things
+        elif event.type == events.design_type and event.method == "move":
+            location = event.location
+            to_location = event.to_location
+
+            if location[0] >= GRID_DIMS[0] or location[1] >= GRID_DIMS[1] \
+               or to_location[0] >= GRID_DIMS[0] or to_location[1] >= GRID_DIMS[1]:
+                continue
+            elif location == [-1, -1]:
+                location = roomGrid.lockedSpace
+            
+            # If we're waiting for Leap info, we have to...well, wait
+            if to_location == [-1, -1]:
+                roomGrid.setWaitFunction("move", {"location": location, "objType": event.obj_type})
+                messageCenter.setText("Point, and say 'here'.")
+            else:
+                roomGrid.moveObject(event.obj_type, location, to_location)
+
+        elif event.type == events.ui_type and event.method == "finish_waiting":
+            if roomGrid.waitFunction[0] == "move":
+                location = roomGrid.waitFunction[1]["location"]
+                to_location = roomGrid.lockedSpace
+                objType = roomGrid.waitFunction[1]["objType"]
+                roomGrid.setWaitFunction(None, None)
+
+                roomGrid.moveObject(objType, location, to_location)
+
         # Deleting things
-        elif event.type == events.delete_type:
+        elif event.type == events.design_type and event.method == "delete":
             location = event.location
             if location[0] >= GRID_DIMS[0] or location[1] >= GRID_DIMS[1]:
                 continue

@@ -10,7 +10,7 @@ class roomObject():
                  outline = 0, # is width for circles
                  text = None,
                  objType = "room",
-                 footprint = [1, 1]):
+                 footprint = [0, 0, 1, 1]):
         self.color = color
         self.rect = rect
         self.circle = circle
@@ -56,11 +56,13 @@ class roomObject():
         }
         return attributes
 
-    def setPos(self, x, y):
+    def setPos(self, x, y, xs, ys):
         if self.rect is None:
             self.circle = [x, y, self.circle[2]]
+            self.footprint = [xs, ys] + self.footprint[2:]
         else:
             self.rect = [x, y] + self.rect[2:]
+            self.footprint = [xs, ys] + self.footprint[2:]
 
 class gridSpace():
     def __init__(self,
@@ -150,6 +152,7 @@ class grid():
         self.spaceDims = [totalWidth // width, totalHeight // height]
         self.hoverSpace = [0, 0]
         self.lockedSpace = [0, 0]
+        self.waitFunction = None
 
         self.objects = set()
         self.createGridSpaces(width, height)
@@ -197,7 +200,22 @@ class grid():
             return space.getCenter()
         else:
             return space.rect
-    
+
+    def getSmallestAt(self, location, objType):
+        """Returns the smallest item at a given gridspace"""
+        smallestObj = None
+        for obj in self.gridSpaces[location[0]][location[1]].getObjects():
+            if obj.objType == objType or objType == "any":
+                # Compare areas - smaller area should get picked
+                if smallestObj is None \
+                   or (obj.footprint[2] * obj.footprint[3] < smallestObj.footprint[2] * smallestObj.footprint[3]):
+                    smallestObj = obj
+
+        if smallestObj is None:
+            return False
+        else:
+            return smallestObj
+
     def getSpace(self, cursorCoords):
         """Returns the space coordinates w,h based on cursor coordinates."""
         space = [0, 0]
@@ -229,6 +247,22 @@ class grid():
     def lockSpace(self):
         """Locks a space while waiting for text to process"""
         self.lockedSpace = self.hoverSpace
+
+    def moveObject(self, objType, location, to_location):
+        """Removes the first instance of object with objType that exists at location"""
+        obj = self.getSmallestAt(location, objType)
+        self.removeObject(objType, location)
+
+        # If circle, use get_coords
+        if obj.circle is not None:
+            coords = self.getCoords(to_location, True)
+            obj.setPos(coords[0], coords[1], to_location[0], to_location[1])
+        elif obj.rect is not None:
+            obj.setPos(to_location[0] * self.spaceDims[0], to_location[1] * self.spaceDims[1], to_location[0], to_location[1])
+
+        self.addObject(obj)
+
+        return True
 
     def openFile(self, path):
         """Opens a saved room design"""
@@ -265,26 +299,13 @@ class grid():
 
     def removeObject(self, objType, location):
         """Removes the first instance of object with objType that exists at location"""
-        print(location)
-        print(len(self.gridSpaces[location[0]][location[1]].getObjects()))
-        smallestObj = None
-        for obj in self.gridSpaces[location[0]][location[1]].getObjects():
-            if obj.objType == objType or objType == "any":
-                # Compare areas - smaller area should get picked
-                if smallestObj is None \
-                   or (obj.footprint[2] * obj.footprint[3] < smallestObj.footprint[2] * smallestObj.footprint[3]):
-                    smallestObj = obj
+        obj = self.getSmallestAt(location, objType)
+        for w in range(obj.footprint[2]):
+            for h in range(obj.footprint[3]):
+                self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
+        self.objects.remove(obj)
 
-        if smallestObj is None:
-            return False
-        else:
-            obj = smallestObj
-            for w in range(obj.footprint[2]):
-                for h in range(obj.footprint[3]):
-                    self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
-            self.objects.remove(obj)
-
-            return True
+        return True
 
     def saveFile(self, window_const, screen_dims, path = None):
         """Saves object list as JSON to given path"""
@@ -327,6 +348,13 @@ class grid():
     def setFileName(self, name):
         """Set file output path"""
         self.file_name = name
+
+    def setWaitFunction(self, name, params):
+        """Set up a waiting function."""
+        if name is None:
+            self.waitFunction = []
+        else:
+            self.waitFunction = [name, params]
 
     def toggleHighlight(self, spaceCoords, color = (210, 210, 210, 1)):
         """Toggles a space to highlight (or not)"""
