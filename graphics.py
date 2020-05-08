@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 import pygame
 from tkinter import filedialog
 
@@ -151,7 +152,7 @@ class grid():
                  totalHeight = 500,
                  numbers = False,
                  color = (200, 200, 200, 1),
-                 file_name = "New_room.json",
+                 file_name = "__RENAME__",
                  title = "New room"):
 
         self.file_name = file_name
@@ -277,7 +278,7 @@ class grid():
         return True
 
     def openFile(self, path):
-        """Opens a saved room design"""
+        """Opens a saved room design. Returns file's name."""
         self.file_name = path
         
         with open(path) as f:
@@ -334,16 +335,19 @@ class grid():
         """Saves object list as JSON to given path"""
         if path is None:
             path = self.file_name
-        if path == "New_room.json":
+        if path == "__RENAME__":
             # Have to make resizable so file dialog appears
             if window_const == pygame.FULLSCREEN:
                 pygame.display.set_mode(screen_dims, pygame.RESIZABLE)
 
             path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JSON", ".json")], defaultextension=".json")
+            title = Path(path).stem
 
             if window_const == pygame.FULLSCREEN:
                 pygame.display.set_mode(screen_dims, pygame.FULLSCREEN)
+        
         self.file_name = path
+        self.title = title
 
         save = {
             "meta": {
