@@ -23,11 +23,11 @@ def change_event(event, messageCenter, roomGrid):
     if event.method == "rename":
         res = roomGrid.renameObject(event.obj_type, location, event.text)
         if not res:
-            messageCenter.setText("Some parameters were missing.")
+            messageCenter.setText("I couldn't do that.")
     elif event.method == "delete":
         res = roomGrid.removeObject(event.obj_type, location)
         if not res:
-            messageCenter.setText("Some parameters were missing.")
+            messageCenter.setText("I couldn't do that.")
 
     return False
 
@@ -46,7 +46,7 @@ def create_event(event, messageCenter, roomGrid):
         location = roomGrid.lockedSpace
 
     if location[0] < 0 or location[1] < 0:
-        messageCenter.setText("Some parameters were missing.")
+        messageCenter.setText("I couldn't do that.")
         return False
     elif event.shape == "circle":
         center = roomGrid.getCoords(location, True)
@@ -140,7 +140,7 @@ def finish_waiting(event, messageCenter, roomGrid):
 
         res = roomGrid.moveObject(objType, location, to_location)
         if not res:
-            messageCenter.setText("Some parameters were missing.")
+            messageCenter.setText("I couldn't do that.")
 
     return False
 
@@ -162,7 +162,7 @@ def move_event(event, messageCenter, roomGrid):
     else:
         res = roomGrid.moveObject(event.obj_type, location, to_location)
         if not res:
-            messageCenter.setText("Some parameters were missing.")
+            messageCenter.setText("I couldn't do that.")
 
     return False
 

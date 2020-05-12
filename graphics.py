@@ -66,7 +66,13 @@ class roomObject():
         }
         return attributes
 
-    def setPos(self, x, y, xs, ys):
+    def getPos(self):
+        return self.footprint[0:2]
+
+    def setPos(self, x, y, xs, ys, dims):
+        if xs + self.footprint[2] > dims[0] or ys + self.footprint[3] > dims[1]:
+            return False
+        
         if self.rect is None:
             self.circle = [x, y, self.circle[2]]
             self.footprint = [xs, ys] + self.footprint[2:]
@@ -311,15 +317,23 @@ class grid():
         """Removes the first instance of object with objType that exists at location"""
         obj = self.getSmallestAt(location, objType)
         
-        if obj != False:
+        if obj != False and (len(to_location) == 3 or (to_location[0] > -1 and to_location[1] > -1)) \
+           and to_location[0] < self.dims[0] and to_location[1] < self.dims[1]:           
+            if len(to_location) == 3 and to_location[2] == "relative":
+                orig = obj.getPos()
+                to_location = [orig[0] + to_location[0], orig[1] + to_location[1]]
+
+            if to_location[0] < 0 or to_location[1] < 0 or to_location[0] >= self.dims[0] or to_location[1] >= self.dims[1]:
+                return False
+            
             self.removeObject(objType, location)
 
             # If circle, use get_coords
             if obj.circle is not None:
                 coords = self.getCoords(to_location, True)
-                obj.setPos(coords[0], coords[1], to_location[0], to_location[1])
+                obj.setPos(coords[0], coords[1], to_location[0], to_location[1], self.dims)
             elif obj.rect is not None:
-                obj.setPos(to_location[0] * self.spaceDims[0], to_location[1] * self.spaceDims[1], to_location[0], to_location[1])
+                obj.setPos(to_location[0] * self.spaceDims[0], to_location[1] * self.spaceDims[1], to_location[0], to_location[1], self.dims)
 
             self.addObject(obj)
 

@@ -7,15 +7,16 @@ def correct_text(text):
 
     text = text.lower()
     text = text.replace("-", " ")
+    text = text.replace("aiden", "8 and")
     text = text.split(" ")
 
     conversions = [
         [["one", "won"], "1"],
         [["to", "too", "two"], "2"],
         [["three", "free"], "3"],
-        [["four"], "4"],
+        [["four", "for", "ford"], "4"],
         [["five"], "5"],
-        [["six"], "6"],
+        [["six", "stix"], "6"],
         [["seven"], "7"],
         [["eight", "ate", "hate"], "8"],
         [["nine"], "9"],
@@ -23,7 +24,10 @@ def correct_text(text):
         [["+"], "and"],
         [["x"], "by"],
         [["buy"], "by"],
-        [["criticize", "play"], "create a size"]
+        [["criticize", "play"], "create a size"],
+        [["write"], "right"],
+        [["op"], "up"],
+        [["run"], "room"]
     ]
 
     for i in range(len(text)):
@@ -89,6 +93,29 @@ def is_in_objects(text):
         return obj
     else:
         return None
+
+def process_relative(text):
+    """Will process relative keywords (up, down, left, right) into relative locations."""
+
+    to_location = None
+    relative = {"up", "down", "left", "right"}
+    rel_int = relative.intersection(text)
+    if len(rel_int) > 0:
+        to_location = [0, 0]
+        for rel in rel_int:
+            delta = get_after(rel, text)[0]
+            if delta.isnumeric():
+                if rel == "up":
+                    to_location[1] -= int(delta)
+                elif rel == "down":
+                    to_location[1] += int(delta)
+                elif rel == "left":
+                    to_location[0] -= int(delta)
+                elif rel == "right":
+                    to_location[0] += int(delta)
+
+    to_location.append("relative")
+    return to_location
 
 def select_obj_type(text):
     """If not in objects, calls it "any" """

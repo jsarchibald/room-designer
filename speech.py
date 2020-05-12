@@ -5,10 +5,10 @@ from time import sleep
 import events
 import objects as obj_types
 from settings import SPEECH_CRED_FILE
-from speech_helpers import correct_text, either_side, get_after, get_position, get_positions, get_size, is_in_objects, select_obj_type
+from speech_helpers import correct_text, either_side, get_after, get_position, get_positions, get_size, is_in_objects, process_relative, select_obj_type
 
 # A variable listing currently-supported commands
-COMMANDS = {"create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there", "export"}
+COMMANDS = {"create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there",  "rename", "export", "right", "left", "up", "down"}
 
 # Some functions to abstract out the event creation process.
 def create(text):
@@ -55,7 +55,12 @@ def move(text):
     # Parameters
     locations = get_positions(text, 2)
     location = locations[0]
-    to_location = locations[1]
+
+    # Check for relative positioning, then move on to explicit positioning
+    to_location = process_relative(text)
+    if to_location is None:
+        to_location = locations[1]
+    
     obj_type = select_obj_type(text)
 
     # Post event
