@@ -10,7 +10,7 @@ import tkinter as tk
 import events
 from handle_events import handle_event
 from graphics import grid, gridSpace, messageCenter, roomObject
-from settings import SCREEN_DIMS, GRID_PX_DIMS, WINDOW_CONST, GRID_DIMS, LEAP_THRESHOLD
+from settings import SCREEN_DIMS, GRID_PX_DIMS, WINDOW_CONST, GRID_DIMS
 from speech import listen
 
 def main():
