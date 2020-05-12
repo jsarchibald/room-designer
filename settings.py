@@ -7,14 +7,25 @@ from sys import argv
 # Essentially global variables.
 # Allow for windowed and full-screen modes
 monitor_1 = get_monitors()[0]
-if len(argv) > 1 and argv[1] == "w":
+if len(argv) > 1 and argv[1] == "f":
+    SCREEN_DIMS = [monitor_1.width, monitor_1.height]
+    GRID_PX_DIMS = [monitor_1.height, monitor_1.height]
+    WINDOW_CONST = pygame.FULLSCREEN
+elif len(argv) > 1 and argv[1] == "w":
     SCREEN_DIMS = [1024, 768]
     GRID_PX_DIMS = [768, 768]
     WINDOW_CONST = pygame.RESIZABLE
 else:
-    SCREEN_DIMS = [monitor_1.width, monitor_1.height]
-    GRID_PX_DIMS = [monitor_1.height, monitor_1.height]
-    WINDOW_CONST = pygame.FULLSCREEN
+    fullscreen = input("Open in full screen? y/n: ")
+    if fullscreen[0] == "y":
+        SCREEN_DIMS = [monitor_1.width, monitor_1.height]
+        GRID_PX_DIMS = [monitor_1.height, monitor_1.height]
+        WINDOW_CONST = pygame.FULLSCREEN
+    else:
+        SCREEN_DIMS = [1024, 768]
+        GRID_PX_DIMS = [768, 768]
+        WINDOW_CONST = pygame.RESIZABLE
+    
 
 # Space dimensions of grid
 GRID_DIMS = [20, 20]

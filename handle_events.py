@@ -153,7 +153,10 @@ def ui_event(event, messageCenter, roomGrid):
     """Handles basic UI events"""
 
     # Close program
-    if event.type == pygame.QUIT:
+    if event.type == pygame.QUIT \
+       or (WINDOW_CONST == pygame.FULLSCREEN \
+           and event.type == pygame.KEYDOWN \
+           and event.key == pygame.K_ESCAPE):
         messageCenter.setText("Exiting program...")
         return True
     
@@ -190,7 +193,7 @@ def handle_event(event, messageCenter, roomGrid):
     """
 
     # Basic UI events
-    if event.type == pygame.QUIT or event.type == pygame.VIDEORESIZE:
+    if event.type == pygame.QUIT or event.type == pygame.VIDEORESIZE or event.type == pygame.KEYDOWN:
         return ui_event(event, messageCenter, roomGrid)
 
     # New, open, save
