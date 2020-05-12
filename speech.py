@@ -8,7 +8,7 @@ from settings import SPEECH_CRED_FILE
 from speech_helpers import correct_text, either_side, get_after, get_position, get_positions, get_size, is_in_objects, process_relative, select_obj_type
 
 # A variable listing currently-supported commands
-COMMANDS = {"create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there",  "rename", "export", "right", "left", "up", "down"}
+COMMANDS = {"create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there",  "rename", "export", "right", "left", "up", "down", "resize"}
 
 # Some functions to abstract out the event creation process.
 def create(text):
@@ -91,6 +91,17 @@ def rename(text):
     evt = pygame.event.Event(events.design_type, method="rename", location=location, obj_type=obj_type, text=called)
     pygame.event.post(evt)
 
+def resize(text):
+    """Resize an object in the scene."""
+    # Parameters
+    location = get_position(text)
+    size = get_size(text)
+    obj_type = select_obj_type(text)
+
+    # Post event
+    evt = pygame.event.Event(events.design_type, method="resize", location=location, obj_type=obj_type, size=size)
+    pygame.event.post(evt)
+
 
 # Process individual voice commands.
 def process_command(text, roomGrid):
@@ -127,6 +138,10 @@ def process_command(text, roomGrid):
     # Renaming things
     elif "rename" in text:
         rename(text)
+
+    # Resizing things
+    elif "resize" in text:
+        resize(text)
 
     # Deleting things
     elif "remove" in text or "delete" in text:

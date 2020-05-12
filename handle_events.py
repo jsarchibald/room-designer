@@ -22,12 +22,13 @@ def change_event(event, messageCenter, roomGrid):
     # Change the appropriate object (or at least, our best guess)
     if event.method == "rename":
         res = roomGrid.renameObject(event.obj_type, location, event.text)
-        if not res:
-            messageCenter.setText("I couldn't do that.")
     elif event.method == "delete":
         res = roomGrid.removeObject(event.obj_type, location)
-        if not res:
-            messageCenter.setText("I couldn't do that.")
+    elif event.method == "resize":
+        res = roomGrid.resizeObject(event.obj_type, location, event.size)
+
+    if not res:
+        messageCenter.setText("I couldn't do that.")
 
     return False
 
@@ -249,7 +250,7 @@ def handle_event(event, messageCenter, roomGrid):
         return move_event(event, messageCenter, roomGrid)
     
     # Renaming and deleting things
-    elif event.type == events.design_type and event.method in ["rename", "delete"]:
+    elif event.type == events.design_type and event.method in ["rename", "delete", "resize"]:
         return change_event(event, messageCenter, roomGrid)
     
     return False

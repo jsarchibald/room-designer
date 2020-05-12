@@ -4,7 +4,7 @@ import pygame
 from tkinter import filedialog
 
 import objects as object_types
-from settings import WINDOW_CONST
+from settings import SCREEN_DIMS, WINDOW_CONST
 
 class roomObject():
     def __init__(self,
@@ -233,14 +233,18 @@ class grid():
         if path is None:
             # Have to make resizable so file dialog appears
             if WINDOW_CONST == pygame.FULLSCREEN:
-                pygame.display.set_mode(screen_dims, pygame.RESIZABLE)
+                pygame.display.set_mode(SCREEN_DIMS, pygame.RESIZABLE)
 
             path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JPEG", ".jpg"), ("PNG", ".png")], defaultextension=".jpg")
 
             if WINDOW_CONST == pygame.FULLSCREEN:
-                pygame.display.set_mode(screen_dims, pygame.FULLSCREEN)
+                pygame.display.set_mode(SCREEN_DIMS, pygame.FULLSCREEN)
 
-        pygame.image.save(surface, path)
+        try:
+            pygame.image.save(surface, path)
+            return True
+        except:
+            return False
 
     def getCoords(self, spaceCoords, center=False):
         """Returns the rectangle of a space, or the x, y center coords, based on space coordinates"""
@@ -314,7 +318,7 @@ class grid():
         self.lockedSpace = self.hoverSpace
 
     def moveObject(self, objType, location, to_location):
-        """Removes the first instance of object with objType that exists at location"""
+        """Moves the first instance of object with objType that exists at location"""
         obj = self.getSmallestAt(location, objType)
         
         if obj != False and (len(to_location) == 3 or (to_location[0] > -1 and to_location[1] > -1)) \
@@ -369,6 +373,51 @@ class grid():
         
         if obj != False:
             obj.setText(text)
+
+            return True
+        else:
+            return False
+
+    def resizeObject(self, objType, location, size):
+        """Resizes the first instance of object with objType that exists at location to the size provided."""
+        obj = self.getSmallestAt(location, objType)
+
+        if obj != False:
+            obj = obj.getAttributes()
+
+            # Circles are always 1x1
+            if obj["rect"] is None:
+                return False
+
+            self.removeObject(objType, location)
+
+            # Make sure size is positive
+            f = obj["footprint"]
+            f[2] = abs(size[0])
+            f[3] = abs(size[1])
+
+            # If too big, make it as big as possible
+            if f[0] + f[2] >= self.dims[0]:
+                f[2] = self.dims[0] - f[0]
+            if f[1] + f[3] >= self.dims[1]:
+                f[3] = self.dims[1] - f[1]
+                
+
+            obj["rect"] = [f[0] * self.spaceDims[0],
+                           f[1] * self.spaceDims[1],
+                           f[2] * self.spaceDims[0],
+                           f[3] * self.spaceDims[1]]
+
+            roomObj = roomObject(color=obj["color"],
+                                 rect=obj["rect"],
+                                 circle=obj["circle"],
+                                 outline=obj["outline"],
+                                 text=obj["text"],
+                                 textColor=obj["textColor"],
+                                 objType=obj["objType"],
+                                 footprint=obj["footprint"],
+                                 textSize=self.textSize)
+            self.addObject(roomObj)
 
             return True
         else:
