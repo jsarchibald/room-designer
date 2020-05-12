@@ -166,8 +166,8 @@ class grid():
         self.dims = [width, height]
         self.totalDims = [totalWidth, totalHeight]
         self.spaceDims = [totalWidth // width, totalHeight // height]
-        self.hoverSpace = [0, 0]
-        self.lockedSpace = [0, 0]
+        self.hoverSpace = [-1, -1]
+        self.lockedSpace = [-1, -1]
         self.waitFunction = []
         self.dead = False
         self.gridTextSize = gridTextSize
@@ -257,6 +257,10 @@ class grid():
 
     def getSmallestAt(self, location, objType):
         """Returns the smallest item at a given gridspace"""
+
+        if location[0] < 0 or location[1] < 0:
+            return False
+
         smallestObj = None
         for obj in self.gridSpaces[location[0]][location[1]].getObjects():
             if obj.objType == objType or objType == "any":
@@ -318,7 +322,9 @@ class grid():
 
             self.addObject(obj)
 
-        return True
+            return True
+        else:
+            return False
 
     def openFile(self, path):
         """Opens a saved room design. Returns file's name."""
@@ -338,7 +344,9 @@ class grid():
                     self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
             self.objects.remove(obj)
 
-        return True
+            return True
+        else:
+            return False
 
     def renameObject(self, objType, location, text):
         """Renames the first instance of object with objType that exists at location"""
@@ -347,7 +355,9 @@ class grid():
         if obj != False:
             obj.setText(text)
 
-        return True
+            return True
+        else:
+            return False
 
     def saveFile(self, screen_dims, path = None):
         """Saves object list as JSON to given path"""

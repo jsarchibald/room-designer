@@ -21,9 +21,13 @@ def change_event(event, messageCenter, roomGrid):
     
     # Change the appropriate object (or at least, our best guess)
     if event.method == "rename":
-        roomGrid.renameObject(event.obj_type, location, event.text)
+        res = roomGrid.renameObject(event.obj_type, location, event.text)
+        if not res:
+            messageCenter.setText("Some parameters were missing.")
     elif event.method == "delete":
-        roomGrid.removeObject(event.obj_type, location)
+        res = roomGrid.removeObject(event.obj_type, location)
+        if not res:
+            messageCenter.setText("Some parameters were missing.")
 
     return False
 
@@ -40,7 +44,11 @@ def create_event(event, messageCenter, roomGrid):
 
     if event.location[0] < 0:
         location = roomGrid.lockedSpace
-    if event.shape == "circle":
+
+    if location[0] < 0 or location[1] < 0:
+        messageCenter.setText("Some parameters were missing.")
+        return False
+    elif event.shape == "circle":
         center = roomGrid.getCoords(location, True)
         radius = [roomGrid.spaceDims[0] // 2]
         obj = roomObject(event.color,
@@ -121,11 +129,18 @@ def finish_waiting(event, messageCenter, roomGrid):
     """Events that happen at the end of some input cycle."""
     if roomGrid.waitFunction[0] == "move":
         location = roomGrid.waitFunction[1]["location"]
-        to_location = roomGrid.lockedSpace
+
+        if event.location == [-1, -1]:
+            to_location = roomGrid.lockedSpace
+        else:
+            to_location = event.location
+
         objType = roomGrid.waitFunction[1]["objType"]
         roomGrid.setWaitFunction(None, None)
 
-        roomGrid.moveObject(objType, location, to_location)
+        res = roomGrid.moveObject(objType, location, to_location)
+        if not res:
+            messageCenter.setText("Some parameters were missing.")
 
     return False
 
@@ -145,7 +160,9 @@ def move_event(event, messageCenter, roomGrid):
         roomGrid.setWaitFunction("move", {"location": location, "objType": event.obj_type})
         messageCenter.setText("Point, and say 'here'.")
     else:
-        roomGrid.moveObject(event.obj_type, location, to_location)
+        res = roomGrid.moveObject(event.obj_type, location, to_location)
+        if not res:
+            messageCenter.setText("Some parameters were missing.")
 
     return False
 
@@ -203,6 +220,10 @@ def handle_event(event, messageCenter, roomGrid):
     elif event.type == events.file_type:
         return file_event(event, messageCenter, roomGrid)
 
+    # Finishing two-part commands
+    elif event.type == events.ui_type and event.method == "finish_waiting":
+        return finish_waiting(event, messageCenter, roomGrid)
+
     # What to do when waiting for a command to be speech-to-text converted
     elif event.type == events.ui_type:
         return ui_event(event, messageCenter, roomGrid)
@@ -226,10 +247,6 @@ def handle_event(event, messageCenter, roomGrid):
     # Moving things
     elif event.type == events.design_type and event.method == "move":
         return move_event(event, messageCenter, roomGrid)
-
-    # Finishing two-part commands
-    elif event.type == events.ui_type and event.method == "finish_waiting":
-        return finish_waiting(event, messageCenter, roomGrid)
     
     # Renaming and deleting things
     elif event.type == events.design_type and event.method in ["rename", "delete"]:

@@ -175,7 +175,6 @@ def rename(text):
 def process_command(text, roomGrid):
     """Process voice commands. Returns False if program should quit."""
     text = correct_text(text)
-    print(text)
 
     # Program controls
     if "quit" in text or "bye" in text or "exit" in text or "close" in text or "goodbye" in text:
@@ -192,7 +191,13 @@ def process_command(text, roomGrid):
 
     # If finishing up a previous command
     elif ("here" in text or "there" in text or "cheer" in text) and len(roomGrid.waitFunction) > 0:
-        pygame.event.post(pygame.event.Event(events.ui_type, method="finish_waiting"))
+        location = [-1, -1]
+        if "at" in text:
+            location = either_side(text, "and")
+            location[0] -= 1
+            location[1] -= 1
+        
+        pygame.event.post(pygame.event.Event(events.ui_type, method="finish_waiting", location=location))
 
     # Creating things
     elif "add" in text or "create" in text:
