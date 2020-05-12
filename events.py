@@ -16,3 +16,4 @@ file_type = pygame.USEREVENT + 5
 file_new = pygame.event.Event(file_type, method="new")
 file_open = pygame.event.Event(file_type, method="open")
 file_save = pygame.event.Event(file_type, method="save")
+file_export = pygame.event.Event(file_type, method="export")

@@ -111,6 +111,9 @@ def file_event(event, messageCenter, roomGrid):
         messageCenter.setText("Saving...")
         roomGrid.saveFile(WINDOW_CONST, SCREEN_DIMS, "__RENAME__")
         pygame.display.set_caption("Room Designer - {0}".format(roomGrid.title))
+    elif event.method == "export":
+        messageCenter.setText("Exporting...")
+        roomGrid.export()
 
     return False
 

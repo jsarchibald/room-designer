@@ -187,6 +187,8 @@ def process_command(text, roomGrid):
         pygame.event.post(events.file_new)
     elif "save" in text:
         pygame.event.post(pygame.event.Event(events.file_type, method="save", change_name=("as" in text)))
+    elif "export" in text:
+        pygame.event.post(events.file_export)
 
     # If finishing up a previous command
     elif ("here" in text or "there" in text or "cheer" in text) and len(roomGrid.waitFunction) > 0:
@@ -232,7 +234,7 @@ def listen(roomGrid):
                 text = r.recognize_google_cloud(audio, 
                                                 language="en-us",
                                                 credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS,
-                                                preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there"])
+                                                preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there", "export"])
                 try:
                     res = process_command(text, roomGrid)
                 except:

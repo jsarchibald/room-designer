@@ -3,6 +3,8 @@ from pathlib import Path
 import pygame
 from tkinter import filedialog
 
+from settings import WINDOW_CONST
+
 class roomObject():
     def __init__(self,
                  color = (0, 0, 255, 1),
@@ -12,12 +14,13 @@ class roomObject():
                  text = None,
                  objType = "room",
                  footprint = [0, 0, 1, 1],
-                 textColor = (255, 255, 255)):
+                 textColor = (255, 255, 255),
+                 textSize = 16):
         self.color = color
         self.rect = rect
         self.circle = circle
         self.outline = outline
-        self.font = pygame.font.Font("fonts/Roboto-Regular.ttf", 16)
+        self.font = pygame.font.Font("fonts/Roboto-Regular.ttf", textSize)
         self.textColor = textColor
         self.text = text
         self.objType = objType
@@ -82,7 +85,8 @@ class gridSpace():
                  outline = 1,
                  objectsHere = None,
                  highlighted = False,
-                 text = None):
+                 text = None,
+                 textSize = 16):
         self.color = color
         self.defaultColor = color
         self.highlightColor = highlightColor
@@ -93,7 +97,7 @@ class gridSpace():
         if objectsHere is None:
             self.objectsHere = set()
         self.highlighted = highlighted
-        self.font = pygame.font.Font("fonts/Roboto-Regular.ttf", 16)
+        self.font = pygame.font.Font("fonts/Roboto-Regular.ttf", textSize)
         self.text = text
         if text is not None:
             self.text = bytes(str(text), "utf-8")
@@ -153,7 +157,9 @@ class grid():
                  numbers = False,
                  color = (200, 200, 200, 1),
                  file_name = "__RENAME__",
-                 title = "New room"):
+                 title = "New room",
+                 gridTextSize = 16,
+                 textSize = 16):
 
         self.file_name = file_name
         self.title = title
@@ -164,6 +170,8 @@ class grid():
         self.lockedSpace = [0, 0]
         self.waitFunction = []
         self.dead = False
+        self.gridTextSize = gridTextSize
+        self.textSize = textSize
 
         self.objects = set()
         self.createGridSpaces(width, height)
@@ -192,7 +200,8 @@ class grid():
                                     h * self.spaceDims[1],
                                     self.spaceDims[0],
                                     self.spaceDims[1]],
-                              text = text))
+                              text = text,
+                              textSize = self.gridTextSize))
 
     def draw(self, surface):
         # Draw grid spaces
@@ -204,6 +213,28 @@ class grid():
         for obj in self.objects:
             obj.draw(surface)
 
+    def export(self, path=None):
+        """Export this project to JPG or PNG"""
+        save = self.getSaveData()
+        roomGrid = grid(self.dims[0], self.dims[1], 2048, 2048, True, gridTextSize=32, textSize=48)
+        roomGrid.setData(save)
+        
+        surface = pygame.Surface((2048, 2048))
+        surface.fill((255, 255, 255))
+        roomGrid.draw(surface)
+
+        if path is None:
+            # Have to make resizable so file dialog appears
+            if WINDOW_CONST == pygame.FULLSCREEN:
+                pygame.display.set_mode(screen_dims, pygame.RESIZABLE)
+
+            path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JPEG", ".jpg"), ("PNG", ".png")], defaultextension=".jpg")
+
+            if WINDOW_CONST == pygame.FULLSCREEN:
+                pygame.display.set_mode(screen_dims, pygame.FULLSCREEN)
+
+        pygame.image.save(surface, path)
+
     def getCoords(self, spaceCoords, center=False):
         """Returns the rectangle of a space, or the x, y center coords, based on space coordinates"""
         space = self.gridSpaces[spaceCoords[0]][spaceCoords[1]]
@@ -211,6 +242,18 @@ class grid():
             return space.getCenter()
         else:
             return space.rect
+
+    def getSaveData(self):
+        """Returns the save data of this project"""
+        save = {
+            "meta": {
+                "title": self.title,
+                "dimensions": self.dims
+            },
+            "objects": self.saveObjects()
+        }
+
+        return save
 
     def getSmallestAt(self, location, objType):
         """Returns the smallest item at a given gridspace"""
@@ -284,6 +327,65 @@ class grid():
         with open(path) as f:
             data = json.load(f)
         
+        self.setData(data)
+
+    def removeObject(self, objType, location):
+        """Removes the first instance of object with objType that exists at location"""
+        obj = self.getSmallestAt(location, objType)
+        if obj != False:
+            for w in range(obj.footprint[2]):
+                for h in range(obj.footprint[3]):
+                    self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
+            self.objects.remove(obj)
+
+        return True
+
+    def renameObject(self, objType, location, text):
+        """Renames the first instance of object with objType that exists at location"""
+        obj = self.getSmallestAt(location, objType)
+        
+        if obj != False:
+            obj.setText(text)
+
+        return True
+
+    def saveFile(self, screen_dims, path = None):
+        """Saves object list as JSON to given path"""
+        if path is None:
+            path = self.file_name
+        if path == "__RENAME__":
+            # Have to make resizable so file dialog appears
+            if WINDOW_CONST == pygame.FULLSCREEN:
+                pygame.display.set_mode(screen_dims, pygame.RESIZABLE)
+
+            path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JSON", ".json")], defaultextension=".json")
+            title = Path(path).stem
+
+            if WINDOW_CONST == pygame.FULLSCREEN:
+                pygame.display.set_mode(screen_dims, pygame.FULLSCREEN)
+        
+        self.file_name = path
+        self.title = title
+
+        save = getSaveData(self)
+
+        try:
+            with open(path, "w") as f:
+                json.dump(save, f)
+            return True
+        except:
+            return False
+
+    def saveObjects(self):
+        """Saves objects to a list"""
+        objects = list()
+        for obj in self.objects:
+            objects.append(obj.getAttributes())
+        
+        return objects
+
+    def setData(self, data):
+        """Set project data"""
         self.title = data["meta"]["title"]
         self.dims = data["meta"]["dimensions"]
         self.spaceDims = [self.totalDims[0] // self.dims[0], self.totalDims[1] // self.dims[1]]
@@ -308,69 +410,9 @@ class grid():
                                  text=obj["text"],
                                  textColor=obj["textColor"],
                                  objType=obj["objType"],
-                                 footprint=obj["footprint"])
+                                 footprint=obj["footprint"],
+                                 textSize=self.textSize)
             self.addObject(roomObj)
-
-    def removeObject(self, objType, location):
-        """Removes the first instance of object with objType that exists at location"""
-        obj = self.getSmallestAt(location, objType)
-        if obj != False:
-            for w in range(obj.footprint[2]):
-                for h in range(obj.footprint[3]):
-                    self.gridSpaces[obj.footprint[0] + w][obj.footprint[1] + h].removeObject(obj)
-            self.objects.remove(obj)
-
-        return True
-
-    def renameObject(self, objType, location, text):
-        """Renames the first instance of object with objType that exists at location"""
-        obj = self.getSmallestAt(location, objType)
-        
-        if obj != False:
-            obj.setText(text)
-
-        return True
-
-    def saveFile(self, window_const, screen_dims, path = None):
-        """Saves object list as JSON to given path"""
-        if path is None:
-            path = self.file_name
-        if path == "__RENAME__":
-            # Have to make resizable so file dialog appears
-            if window_const == pygame.FULLSCREEN:
-                pygame.display.set_mode(screen_dims, pygame.RESIZABLE)
-
-            path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JSON", ".json")], defaultextension=".json")
-            title = Path(path).stem
-
-            if window_const == pygame.FULLSCREEN:
-                pygame.display.set_mode(screen_dims, pygame.FULLSCREEN)
-        
-        self.file_name = path
-        self.title = title
-
-        save = {
-            "meta": {
-                "title": self.title,
-                "dimensions": self.dims
-            },
-            "objects": self.saveObjects()
-        }
-
-        try:
-            with open(path, "w") as f:
-                json.dump(save, f)
-            return True
-        except:
-            return False
-
-    def saveObjects(self):
-        """Saves objects to a list"""
-        objects = list()
-        for obj in self.objects:
-            objects.append(obj.getAttributes())
-        
-        return objects
 
     def setFileName(self, name):
         """Set file output path"""
