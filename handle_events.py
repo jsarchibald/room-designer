@@ -1,6 +1,6 @@
 import pygame
 import threading
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 import events
 from graphics import grid, gridSpace, messageCenter, roomObject
@@ -173,8 +173,11 @@ def ui_event(event, messageCenter, roomGrid):
             roomGrid.lockSpace()
             messageCenter.setText("Parsing voice command...")
         elif event.method == "done_listening":
-            if messageCenter.text == "Parsing voice command...":
-                messageCenter.setText("Waiting for voice command.")
+            if event.message is None:
+                if messageCenter.text == "Parsing voice command...":
+                    messageCenter.setText("Waiting for voice command.")
+            else:
+                messageCenter.setText(event.message)
 
     return False
 
@@ -207,6 +210,13 @@ def handle_event(event, messageCenter, roomGrid):
     # Error events
     elif event.type == events.error_type:
         messageCenter.setText(event.error)
+
+        # No microphone connection, we notify the user and kill the program
+        if event.error == "Could not connect to a microphone.":
+            messagebox.showerror("Microphone error", event.error)
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            return True
+
         return False
 
     # Creating things

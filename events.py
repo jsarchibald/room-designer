@@ -3,7 +3,8 @@ import pygame
 # General UI events
 ui_type = pygame.USEREVENT + 1
 capture_space_event = pygame.event.Event(ui_type, method="capture_space")
-done_listening_event = pygame.event.Event(ui_type, method="done_listening")
+error_listening_event = pygame.event.Event(ui_type, method="done_listening", message="I couldn't understand that.")
+done_listening_event = pygame.event.Event(ui_type, method="done_listening", message=None)
 
 error_type = pygame.USEREVENT + 2
 error_event = pygame.event.Event(error_type)

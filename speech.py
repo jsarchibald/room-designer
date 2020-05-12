@@ -221,29 +221,32 @@ def listen(roomGrid):
         GOOGLE_CLOUD_SPEECH_CREDENTIALS = f.read()
 
     r = sr.Recognizer()
-    with sr.Microphone() as source:
-        r.adjust_for_ambient_noise(source, duration=2)
-        while True:
-            if roomGrid.dead:
-                break
-
-            audio = r.listen(source, phrase_time_limit=6)
-
-            try:
-                pygame.event.post(events.capture_space_event)
-                text = r.recognize_google_cloud(audio, 
-                                                language="en-us",
-                                                credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS,
-                                                preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there", "export"])
-                try:
-                    res = process_command(text, roomGrid)
-                except:
-                    print("your code is wrong")
-                if not res:
+    try:
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source, duration=2)
+            while True:
+                if roomGrid.dead:
                     break
-            except sr.UnknownValueError:
-                print("Google Cloud Speech could not understand audio")
-                pygame.event.post(events.done_listening_event)
-            except:
-                print("Could not request results from Google Cloud Speech service")
-                pygame.event.post(pygame.event.Event(events.error_type, error = "Speech recognition error."))
+
+                audio = r.listen(source, phrase_time_limit=6)
+
+                try:
+                    pygame.event.post(events.capture_space_event)
+                    text = r.recognize_google_cloud(audio, 
+                                                    language="en-us",
+                                                    credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS,
+                                                    preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there", "export"])
+                    try:
+                        res = process_command(text, roomGrid)
+                    except:
+                        print("There was an error processing and executing the command.")
+                        pygame.event.post(events.error_listening_event)
+                    if not res:
+                        break
+                except sr.UnknownValueError:
+                    pygame.event.post(events.error_listening_event)
+                except:
+                    print("Could not request results from Google Cloud Speech service.")
+                    pygame.event.post(pygame.event.Event(events.error_type, error = "Speech recognition error."))
+    except OSError:
+        pygame.event.post(pygame.event.Event(events.error_type, error = "Could not connect to a microphone."))

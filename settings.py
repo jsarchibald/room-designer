@@ -8,6 +8,7 @@ from sys import argv
 # Tkinter start
 root = tk.Tk()
 root.withdraw()
+root.iconphoto(False, tk.PhotoImage(file="img/icon_32.png"))
 
 # Essentially global variables.
 # Allow for windowed and full-screen modes

@@ -30,6 +30,7 @@ def main():
     roomGrid = grid(GRID_DIMS[0], GRID_DIMS[1], GRID_PX_DIMS[0], GRID_PX_DIMS[1], True)
     mc = messageCenter(GRID_PX_DIMS[0] + 10, 10)
 
+    # Start speech recognition thread
     listener_thread = threading.Thread(target=listen, args=[roomGrid])
     listener_thread.daemon = True
     listener_thread.start()
@@ -38,11 +39,22 @@ def main():
     screen.fill((255, 255, 255))
     icon = pygame.image.load("img/icon_512.png")
     
+    # Font for loading screen
+    font = pygame.font.Font("fonts/Roboto-Regular.ttf", 24)
+
+    # Tell user about ESC to close program in full screen (since no [X] button)
     if WINDOW_CONST == pygame.FULLSCREEN:
-        font = pygame.font.Font("fonts/Roboto-Regular.ttf", 24)
         text_surface = font.render("Press ESC to close, if voice commands fail.", 1, (0, 0, 0))
         text_size = text_surface.get_size()
         coords = ((SCREEN_DIMS[0] - text_size[0]) // 2, (SCREEN_DIMS[1] - 64))
+        screen.blit(text_surface, coords)
+
+    # Alert user if there's no Leap connection
+    info = getLeapInfo()
+    if not info.connected:
+        text_surface = font.render("Could not connect to the Leap Motion Controller.", 1, (0, 0, 0))
+        text_size = text_surface.get_size()
+        coords = ((SCREEN_DIMS[0] - text_size[0]) // 2, (SCREEN_DIMS[1] - 128))
         screen.blit(text_surface, coords)
 
     screen.blit(icon, ((SCREEN_DIMS[0] - 512) // 2, (SCREEN_DIMS[1] - 512) // 2))
