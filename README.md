@@ -13,7 +13,7 @@ To run this on your machine, follow these steps!
 7. In your terminal, run `python main.py`.
 
 ### Note on operating environment
-I wrote and tested this code on a Windows 10 machine running Python 3.7.2. I cannot speak to whether, or how well, it works on other systems.
+I wrote and tested this code on a Windows 10 machine running Python 3.7.2. I cannot speak to whether, or how well, it works on other systems. Further, a microphone is required to run the software. A Leap Motion Controller is a possible hardware accessory, but not required; the program's successful running only depends on a microphone.
 
 ## Code organization
 The directories containing code belong to libraries:
