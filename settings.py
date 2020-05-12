@@ -1,8 +1,13 @@
 import numpy as np
 import pygame
+import tkinter as tk
+from tkinter import messagebox
 from screeninfo import get_monitors
 from sys import argv
 
+# Tkinter start
+root = tk.Tk()
+root.withdraw()
 
 # Essentially global variables.
 # Allow for windowed and full-screen modes
@@ -16,8 +21,8 @@ elif len(argv) > 1 and argv[1] == "w":
     GRID_PX_DIMS = [768, 768]
     WINDOW_CONST = pygame.RESIZABLE
 else:
-    fullscreen = input("Open in full screen? y/n: ")
-    if fullscreen[0] == "y":
+    fullscreen = messagebox.askyesno("Room Designer - View Mode", "Would you like to run in full screen?")
+    if fullscreen:
         SCREEN_DIMS = [monitor_1.width, monitor_1.height]
         GRID_PX_DIMS = [monitor_1.height, monitor_1.height]
         WINDOW_CONST = pygame.FULLSCREEN

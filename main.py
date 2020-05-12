@@ -22,9 +22,6 @@ def main():
     screen = pygame.display.set_mode(SCREEN_DIMS, WINDOW_CONST)
     pygame.display.set_caption("Room Designer - New room")
 
-    root = tk.Tk()
-    root.withdraw()
-
     # Start grid, loops for input
     done = False
     clock = pygame.time.Clock()
@@ -40,6 +37,14 @@ def main():
     # Loading screen icon, so the listener thread has a second to start listening
     screen.fill((255, 255, 255))
     icon = pygame.image.load("img/icon_512.png")
+    
+    if WINDOW_CONST == pygame.FULLSCREEN:
+        font = pygame.font.Font("fonts/Roboto-Regular.ttf", 24)
+        text_surface = font.render("Press ESC to close, if voice commands fail.", 1, (0, 0, 0))
+        text_size = text_surface.get_size()
+        coords = ((SCREEN_DIMS[0] - text_size[0]) // 2, (SCREEN_DIMS[1] - 64))
+        screen.blit(text_surface, coords)
+
     screen.blit(icon, ((SCREEN_DIMS[0] - 512) // 2, (SCREEN_DIMS[1] - 512) // 2))
     pygame.display.flip()
 
