@@ -22,7 +22,7 @@ elif len(argv) > 1 and argv[1] == "w":
     GRID_PX_DIMS = [768, 768]
     WINDOW_CONST = pygame.RESIZABLE
 else:
-    fullscreen = messagebox.askyesno("Room Designer - View Mode", "Would you like to run in full screen?")
+    fullscreen = messagebox.askyesno("Room Designer - View Mode", "Would you like to run the program in full screen?")
     if fullscreen:
         SCREEN_DIMS = [monitor_1.width, monitor_1.height]
         GRID_PX_DIMS = [monitor_1.height, monitor_1.height]

@@ -20,7 +20,7 @@ def main():
     icon = pygame.image.load("img/icon_32.png")
     pygame.display.set_icon(icon)
     screen = pygame.display.set_mode(SCREEN_DIMS, WINDOW_CONST)
-    pygame.display.set_caption("Room Designer - New room")
+    pygame.display.set_caption("Room Designer")
 
     # Start grid, loops for input
     done = False

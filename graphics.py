@@ -3,6 +3,7 @@ from pathlib import Path
 import pygame
 from tkinter import filedialog
 
+import objects as object_types
 from settings import WINDOW_CONST
 
 class roomObject():
@@ -452,33 +453,35 @@ class messageCenter():
         self.text = text
 
         # Key to objects
-        self.table = roomObject((95, 32, 0), (self.x, self.y + 50, 60, 20), objType="table")
-        self.table_label = [self.font.render("Table", 1, self.defaultColor), self.x + 70, self.y + 50]
+        self.objects = list()
 
-        self.cocktail = roomObject((70, 70, 70), circle=(self.x + 10, self.y + 90, 10), objType="table")
-        self.cocktail_label = [self.font.render("Cocktail table", 1, self.defaultColor), self.x + 70, self.y + 80]
+        self.spacing = 30
+        y_space = 50
+        for obj in object_types.obj_types:
+            ot = obj
+            obj = object_types.obj_types[obj]
+            if obj["shape"] == "circle":
+                # Shift x and y for radius
+                o = roomObject(obj["color"], circle=(self.x + 10, self.y + y_space + 10, 10), objType=ot)
+                l = [self.font.render(obj["description"], 1, self.defaultColor), self.x + 70, self.y + y_space]
+            else:
+                o = roomObject(obj["color"], (self.x, self.y + y_space, 60, 20), objType=ot)
+                l = [self.font.render(obj["description"], 1, self.defaultColor),
+                     self.x + 70, self.y + y_space]
 
-        self.room = roomObject((255, 0, 0), (self.x, self.y + 110, 60, 20), outline=2, objType="room")
-        self.room_label = [self.font.render("Room", 1, self.defaultColor), self.x + 70, self.y + 110]
+            self.objects.append(o)
+            self.objects.append(l)
+            y_space += self.spacing
 
-        self.couch = roomObject((154, 0, 130), (self.x, self.y + 140, 60, 20), objType="couch")
-        self.couch_label = [self.font.render("Couch", 1, self.defaultColor), self.x + 70, self.y + 140]
-
-        self.commands = [pygame.image.load("img/commands.png"), self.x, self.y + 170]
+        self.commands = [pygame.image.load("img/commands.png"), self.x, self.y + y_space]
 
     def draw(self, surface, color = None):
         # The key to objects
-        self.table.draw(surface)
-        surface.blit(self.table_label[0], self.table_label[1:])
-
-        self.cocktail.draw(surface)
-        surface.blit(self.cocktail_label[0], self.cocktail_label[1:])
-
-        self.room.draw(surface)
-        surface.blit(self.room_label[0], self.room_label[1:])
-
-        self.couch.draw(surface)
-        surface.blit(self.couch_label[0], self.couch_label[1:])
+        for obj in self.objects:
+            if type(obj) == list:
+                surface.blit(obj[0], obj[1:])
+            else:
+                obj.draw(surface)
 
         surface.blit(self.commands[0], self.commands[1:])
 

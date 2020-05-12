@@ -3,91 +3,47 @@ import speech_recognition as sr
 from time import sleep
 
 import events
+import objects as obj_types
 from settings import SPEECH_CRED_FILE
-from speech_helpers import correct_text, either_side
+from speech_helpers import correct_text, either_side, get_after, get_position, get_positions, get_size, is_in_objects, select_obj_type
 
+# A variable listing currently-supported commands
+COMMANDS = {"create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there", "export"}
 
 # Some functions to abstract out the event creation process.
 def create(text):
     """Create an object in the room."""
-    location = [-1, -1]
-    size = [1, 1]
-    outline = 0
-    obj_type = "cocktail"
-    
+
     # Parameters
-    if "at" in text:
-        location = either_side(text, "and")
-        location[0] -= 1
-        location[1] -= 1
-    if "by" in text or "size" in text:
-        size = either_side(text, "by", [1, 1])
+    location = get_position(text)
+    size = get_size(text)
+
     if "called" in text:
-        called = text[text.index("called") + 1:]
-        called = " ".join(called)
+        called = " ".join(get_after("called", text))
     else:
         called = None
 
     # Object types
-    if "cocktail" in text or "round" in text:
-        shape = "circle"
-        color = (70, 70, 70)
-        obj_type = "cocktail"
-        text_color = (255, 255, 255)
-    elif "table" in text or "rectangle" in text:
-        shape = "rectangle"
-        color = (95, 32, 0)
-        obj_type = "table"
-        text_color = (255, 255, 255)
-    elif "room" in text or "salon" in text:
-        shape = "rectangle"
-        color = (255, 0, 0)
-        outline = 2
-        obj_type = "room"
-        text_color = (0, 0, 0)
-    elif "couch" in text or "sofa" in text:
-        shape = "rectangle"
-        color = (154, 0, 130)
-        obj_type = "couch"
-        text_color = (255, 255, 255)
-    else:
-        shape = None
-    
-    if shape is not None:
-        # Post event
+    obj = is_in_objects(text)
+    if obj is not None:
+        obj_type = obj_types.obj_types[obj]
         pygame.event.post(
             pygame.event.Event(events.design_type,
                             method="create",
-                            shape=shape,
+                            shape=obj_type["shape"],
                             location=location,
-                            color=color,
+                            color=obj_type["color"],
                             size=size,
-                            outline=outline,
-                            obj_type=obj_type,
+                            outline=obj_type["outline"],
+                            obj_type=obj,
                             text=called,
-                            text_color=text_color))
+                            text_color=obj_type["text_color"]))
+        
 
 def delete(text):
     """Delete an object in the room."""
-    location = [-1, -1]
-
-    # Parameters
-    if "at" in text:
-        location = either_side(text, "and")
-        location[0] -= 1
-        location[1] -= 1
-
-    # Object types
-    if "cocktail" in text:
-        obj_type = "cocktail"
-    elif "table" in text:
-        obj_type = "table"
-    elif "room" in text:
-        obj_type = "room"
-    elif "couch" in text or "sofa" in text:
-        obj_type = "couch"
-    elif "this" in text or "that" in text:
-        obj_type = "any"
+    location = get_position(text)
+    obj_type = select_obj_type(text)
 
     # Post event
     evt = pygame.event.Event(events.design_type, method="delete", location=location, obj_type=obj_type)
@@ -95,34 +51,12 @@ def delete(text):
 
 def move(text):
     """Move an object in the room."""
-    location = [-1, -1]
-    to_location = [-1, -1]
 
-    # Parameters (if location given in speech command)
-    if "at" in text:
-        location = either_side(text, "and")
-        location[0] -= 1
-        location[1] -= 1
-        remaining_text = text[(text.index("and") + 1):]
-    else:
-        remaining_text = text
-
-    if "and" in remaining_text:
-        to_location = either_side(remaining_text, "and")
-        to_location[0] -= 1
-        to_location[1] -= 1
-
-    # Object types
-    if "cocktail" in text:
-        obj_type = "cocktail"
-    elif "table" in text:
-        obj_type = "table"
-    elif "room" in text:
-        obj_type = "room"
-    elif "couch" in text or "sofa" in text:
-        obj_type = "couch"
-    elif "this" in text or "that" in text:
-        obj_type = "any"
+    # Parameters
+    locations = get_positions(text, 2)
+    location = locations[0]
+    to_location = locations[1]
+    obj_type = select_obj_type(text)
 
     # Post event
     evt = pygame.event.Event(events.design_type,
@@ -134,37 +68,19 @@ def move(text):
 
 def rename(text):
     """Rename an object in the scene."""
-    location = [-1, -1]
-
     # Parameters
-    if "at" in text:
-        location = either_side(text, "and")
-        location[0] -= 1
-        location[1] -= 1
+    location = get_position(text)
 
     if "to" in text:
-        called = text[text.index("to") + 1:]
-        called = " ".join(called)
+        called = " ".join(get_after("to", text))
     elif "as" in text:
-        called = text[text.index("as") + 1:]
-        called = " ".join(called)
+        called = " ".join(get_after("as", text))
     elif "2" in text:
-        called = text[text.index("2") + 1:]
-        called = " ".join(called)
+        called = " ".join(get_after("2", text))
     else:
         called = None
 
-    # Object types
-    if "cocktail" in text:
-        obj_type = "cocktail"
-    elif "table" in text:
-        obj_type = "table"
-    elif "room" in text:
-        obj_type = "room"
-    elif "couch" in text or "sofa" in text:
-        obj_type = "couch"
-    elif "this" in text or "that" in text:
-        obj_type = "any"
+    obj_type = select_obj_type(text)
 
     # Post event
     evt = pygame.event.Event(events.design_type, method="rename", location=location, obj_type=obj_type, text=called)
@@ -177,7 +93,7 @@ def process_command(text, roomGrid):
     text = correct_text(text)
 
     # Program controls
-    if "quit" in text or "bye" in text or "exit" in text or "close" in text or "goodbye" in text:
+    if "quit" in text or "exit" in text or "close" in text or "goodbye" in text:
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         return False
     elif "open" in text:
@@ -191,12 +107,7 @@ def process_command(text, roomGrid):
 
     # If finishing up a previous command
     elif ("here" in text or "there" in text or "cheer" in text) and len(roomGrid.waitFunction) > 0:
-        location = [-1, -1]
-        if "at" in text:
-            location = either_side(text, "and")
-            location[0] -= 1
-            location[1] -= 1
-        
+        location = get_position(text)
         pygame.event.post(pygame.event.Event(events.ui_type, method="finish_waiting", location=location))
 
     # Creating things
@@ -225,6 +136,8 @@ def listen(roomGrid):
     with open(SPEECH_CRED_FILE) as f:
         GOOGLE_CLOUD_SPEECH_CREDENTIALS = f.read()
 
+    context_list = list(COMMANDS.union(obj_types.possible))
+
     r = sr.Recognizer()
     try:
         with sr.Microphone() as source:
@@ -240,7 +153,7 @@ def listen(roomGrid):
                     text = r.recognize_google_cloud(audio, 
                                                     language="en-us",
                                                     credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS,
-                                                    preferred_phrases=["create", "save", "add", "insert", "delete", "remove", "goodbye", "exit", "quit", "new", "open", "move", "relocate", "here", "there", "export"])
+                                                    preferred_phrases=context_list)
                     try:
                         res = process_command(text, roomGrid)
                     except:
