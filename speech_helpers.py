@@ -90,6 +90,10 @@ def is_in_objects(text):
         if obj in obj_types.synonyms:
             obj = obj_types.synonyms[obj]
 
+        # A hard-coded exception, our favorite :(
+        if "cocktail" in obj_type_int:
+            obj = "cocktail"
+
         return obj
     else:
         return None
@@ -114,7 +118,8 @@ def process_relative(text):
                 elif rel == "right":
                     to_location[0] += int(delta)
 
-    to_location.append("relative")
+        to_location.append("relative")
+        
     return to_location
 
 def select_obj_type(text):

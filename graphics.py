@@ -423,25 +423,25 @@ class grid():
         else:
             return False
 
-    def saveFile(self, screen_dims, path = None):
+    def saveFile(self, path = None):
         """Saves object list as JSON to given path"""
         if path is None:
             path = self.file_name
         if path == "__RENAME__":
             # Have to make resizable so file dialog appears
             if WINDOW_CONST == pygame.FULLSCREEN:
-                pygame.display.set_mode(screen_dims, pygame.RESIZABLE)
+                pygame.display.set_mode(SCREEN_DIMS, pygame.RESIZABLE)
 
             path = filedialog.asksaveasfilename(title="Choose a file location and name.", filetypes=[("JSON", ".json")], defaultextension=".json")
             title = Path(path).stem
 
             if WINDOW_CONST == pygame.FULLSCREEN:
-                pygame.display.set_mode(screen_dims, pygame.FULLSCREEN)
+                pygame.display.set_mode(SCREEN_DIMS, pygame.FULLSCREEN)
         
-        self.file_name = path
-        self.title = title
+            self.file_name = path
+            self.title = title
 
-        save = getSaveData(self)
+        save = self.getSaveData()
 
         try:
             with open(path, "w") as f:
@@ -525,10 +525,10 @@ class messageCenter():
             obj = object_types.obj_types[obj]
             if obj["shape"] == "circle":
                 # Shift x and y for radius
-                o = roomObject(obj["color"], circle=(self.x + 10, self.y + y_space + 10, 10), objType=ot)
+                o = roomObject(obj["color"], circle=(self.x + 10, self.y + y_space + 10, 10), objType=ot, outline=obj["outline"])
                 l = [self.font.render(obj["description"], 1, self.defaultColor), self.x + 70, self.y + y_space]
             else:
-                o = roomObject(obj["color"], (self.x, self.y + y_space, 60, 20), objType=ot)
+                o = roomObject(obj["color"], (self.x, self.y + y_space, 60, 20), objType=ot, outline=obj["outline"])
                 l = [self.font.render(obj["description"], 1, self.defaultColor),
                      self.x + 70, self.y + y_space]
 

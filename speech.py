@@ -60,7 +60,7 @@ def move(text):
     to_location = process_relative(text)
     if to_location is None:
         to_location = locations[1]
-    
+
     obj_type = select_obj_type(text)
 
     # Post event
